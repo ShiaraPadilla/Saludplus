@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <title>Salud+ | Inicio</title>
+
+    <meta name="theme-color" content="#08a34b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Salud+">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="img/icono.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="img/icono.svg">
+
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+    <main class="dashboard">
+
+        <!-- ENCABEZADO -->
+        <header class="dashboard-header">
+
+            <div class="dashboard-saludo">
+
+                <h1>
+                    ¡Hola, <span id="nombreUsuario">Usuario</span>! 👋
+                </h1>
+
+                <!-- Fecha de hoy (se llena con JavaScript) -->
+                <p id="fechaHoy" class="dashboard-fecha"></p>
+
+            </div>
+
+            <button
+                type="button"
+                class="boton-campana"
+                aria-label="Ver notificaciones"
+                onclick="mostrarNotificaciones()">
+
+                <svg class="icono-campana" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2Zm-2 1H7v-6a5 5 0 0 1 10 0v6Z"/>
+                </svg>
+
+                <!-- Contador de pendientes -->
+                <span
+                    id="badgeNotificaciones"
+                    class="badge-notificaciones oculto-badge"
+                    aria-hidden="true">
+                    0
+                </span>
+
+            </button>
+
+        </header>
+
+
+        <!-- ESTADO EMOCIONAL -->
+        <section
+            class="tarjeta-sentimiento"
+            role="button"
+            tabindex="0"
+            aria-label="Registrar cómo te sientes hoy"
+            onclick="irAEmocional()"
+            onkeydown="activarConTeclado(event, irAEmocional)">
+
+            <div>
+
+                <h2>
+                    ¿Cómo te sientes hoy?
+                </h2>
+
+                <p id="textoSentimiento">
+                    Cuéntanos cómo está tu día
+                </p>
+
+            </div>
+
+            <div id="caraSentimiento" class="cara-feliz">
+                🙂
+            </div>
+
+            <span class="flecha">
+                ›
+            </span>
+
+        </section>
+
+
+        <!-- CUADRÍCULA PRINCIPAL -->
+        <section class="tarjetas-dashboard">
+
+
+            <!-- MEDICAMENTOS -->
+            <button
+                type="button"
+                class="dashboard-card tarjeta-dashboard tarjeta-medicamentos"
+                onclick="irAMedicamentos()">
+
+                <div class="dashboard-card-icono">
+                    💊
+                </div>
+
+                <div class="dashboard-card-contenido">
+
+                    <h3>
+                        Medicamentos
+                    </h3>
+
+                    <p id="resumenMedicamentos">
+                        Sin medicamentos registrados
+                    </p>
+
+                </div>
+
+            </button>
+
+
+            <!-- CITAS -->
+            <button
+                type="button"
+                class="dashboard-card tarjeta-dashboard tarjeta-citas"
+                onclick="irACitas()">
+
+                <div class="dashboard-card-icono">
+                    📅
+                </div>
+
+                <div class="dashboard-card-contenido">
+
+                    <h3>
+                        Citas médicas
+                    </h3>
+
+                    <p id="resumenCitas">
+                        Sin citas registradas
+                    </p>
+
+                </div>
+
+            </button>
+
+
+            <!-- BIENESTAR -->
+            <button
+                type="button"
+                class="dashboard-card tarjeta-dashboard tarjeta-bienestar"
+                onclick="irABienestar()">
+
+                <div class="dashboard-card-icono">
+                    💚
+                </div>
+
+                <div class="dashboard-card-contenido">
+
+                    <h3>
+                        Bienestar
+                    </h3>
+
+                    <p id="resumenBienestarDashboard">
+                        Ver mi progreso
+                    </p>
+
+                </div>
+
+            </button>
+
+
+            <!-- ESTADO EMOCIONAL -->
+            <button
+                type="button"
+                class="dashboard-card tarjeta-dashboard tarjeta-emocional"
+                onclick="irAEmocional()">
+
+                <div class="dashboard-card-icono">
+                    🙂
+                </div>
+
+                <div class="dashboard-card-contenido">
+
+                    <h3>
+                        Estado emocional
+                    </h3>
+
+                    <p id="resumenEmocional">
+                        Sin registro
+                    </p>
+
+                </div>
+
+            </button>
+
+        </section>
+
+
+        <!-- RECORDATORIOS -->
+        <button
+            type="button"
+            class="recordatorio"
+            onclick="mostrarRecordatorios()">
+
+            <div class="recordatorio-icono">
+                ♥
+            </div>
+
+            <div class="recordatorio-texto">
+
+                <span id="textoRecordatorio">
+                    Tienes 0 recordatorios
+                </span>
+
+                <span id="subtextoRecordatorio">
+                    para hoy
+                </span>
+
+            </div>
+
+            <div class="recordatorio-campana">
+                <svg class="icono-campana" viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2Z"/>
+                </svg>
+            </div>
+
+        </button>
+
+
+        <!-- BARRA INFERIOR -->
+        <nav class="barra-inferior">
+
+            <!-- INICIO -->
+            <button
+                type="button"
+                class="nav-item activo"
+                aria-current="page"
+                onclick="irAInicio()">
+
+                <span class="nav-icono">
+                    🏠
+                </span>
+
+                <span>
+                    Inicio
+                </span>
+
+            </button>
+
+
+            <!-- HISTORIAL -->
+            <button
+                type="button"
+                class="nav-item"
+                onclick="irAHistorial()">
+
+                <span class="nav-icono">
+                    ▤
+                </span>
+
+                <span>
+                    Historial
+                </span>
+
+            </button>
+
+
+            <!-- AJUSTES -->
+            <button
+                type="button"
+                class="nav-item"
+                onclick="irAAjustes()">
+
+                <span class="nav-icono">
+                    ⚙
+                </span>
+
+                <span>
+                    Ajustes
+                </span>
+
+            </button>
+
+        </nav>
+
+    </main>
+
+
+    <!-- MENSAJE BREVE (toast) -->
+    <div
+        id="avisoDashboard"
+        class="aviso-dashboard"
+        role="status"
+        aria-live="polite">
+    </div>
+
+
+    <script src="js/comun.js"></script>
+
+
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>

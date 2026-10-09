@@ -1,0 +1,5 @@
+Flask>=3.0,<4
+PyMySQL>=1.1
+cryptography>=42        # necesario para conectarse a MySQL 8 con contraseña
+python-dotenv>=1.0
+gunicorn>=22.0          # servidor para producción (Render)
