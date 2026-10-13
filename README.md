@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| 🌐 **Aplicación desplegada** | **[COMPLETAR: https://saludplus.onrender.com]** |
+| 🌐 **Aplicación desplegada** | **https://saludplus-hdr5.onrender.com** |
 | 📂 **Repositorio** | **https://github.com/ShiaraPadilla/Saludplus** |
 | 🎯 **ODS abordado** | **ODS 3 — Salud y bienestar** |
 | 🗄️ **Base de datos** | MySQL 8 (Aiven for MySQL) |
