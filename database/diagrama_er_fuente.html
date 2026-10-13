@@ -1,0 +1,80 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<style>
+ *{box-sizing:border-box}
+ body{margin:0;background:#fff;font-family:Arial,Helvetica,sans-serif;color:#1d2b23}
+ #lienzo{position:relative;width:1500px;padding:34px 40px 30px;background:#fff}
+ h1{margin:0;font-size:30px;color:#0b7a3a}
+ .sub{margin:4px 0 26px;font-size:16px;color:#555}
+ #grid{position:relative;display:grid;grid-template-columns:repeat(3,1fr);column-gap:150px;row-gap:90px;align-items:center;justify-items:center}
+ svg#lineas{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+ .ent{position:relative;z-index:1;width:100%;max-width:360px;border:2px solid #08a34b;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 3px 10px rgba(0,0,0,.07)}
+ .ent.centro{border-width:3px;border-color:#06783a}
+ .ent h2{margin:0;padding:9px 12px;background:#08a34b;color:#fff;font-size:17px;letter-spacing:.3px}
+ .ent.centro h2{background:#06783a}
+ table{width:100%;border-collapse:collapse;font-size:13.5px}
+ td{padding:5px 10px;border-top:1px solid #e3efe7}
+ td.k{width:76px;text-align:center;white-space:nowrap}
+ td.t{color:#5b6b62;text-align:right;white-space:nowrap;font-size:12.5px}
+ .pk,.fk,.uk{display:inline-block;padding:1px 5px;border-radius:4px;font-size:11px;font-weight:700}
+ .pk{background:#ffe9a8;color:#7a5300}.fk{background:#d9e8ff;color:#1d4f91}.uk{background:#efe0ff;color:#5b2d91}
+ tr.n td.a{font-weight:700}
+ .etq{font-size:13px;fill:#1d4f3a;font-style:italic}
+ .leyenda{margin-top:30px;display:flex;flex-wrap:wrap;gap:8px 26px;font-size:14px;color:#333;align-items:center}
+ .leyenda svg{vertical-align:middle}
+</style></head><body><div id="lienzo">
+<h1>Salud+ · Diagrama Entidad-Relación</h1>
+<div class="sub">Base de datos <b>saludplus</b> · MySQL 8 · 9 tablas · Tercera Forma Normal (3FN) · Llaves foráneas con ON DELETE CASCADE</div>
+<div id="grid"><svg id="lineas"></svg></div>
+<div class="leyenda">
+ <span><b>Notación pata de gallo:</b></span>
+ <span><svg width="44" height="20"><line x1="0" y1="10" x2="44" y2="10" stroke="#3b6b4f" stroke-width="2"/><line x1="30" y1="2" x2="30" y2="18" stroke="#3b6b4f" stroke-width="2"/><line x1="36" y1="2" x2="36" y2="18" stroke="#3b6b4f" stroke-width="2"/></svg> exactamente uno</span>
+ <span><svg width="44" height="20"><line x1="0" y1="10" x2="44" y2="10" stroke="#3b6b4f" stroke-width="2"/><circle cx="22" cy="10" r="5" fill="#fff" stroke="#3b6b4f" stroke-width="2"/><line x1="30" y1="10" x2="44" y2="2" stroke="#3b6b4f" stroke-width="2"/><line x1="30" y1="10" x2="44" y2="18" stroke="#3b6b4f" stroke-width="2"/></svg> cero o muchos</span>
+ <span><svg width="44" height="20"><line x1="0" y1="10" x2="44" y2="10" stroke="#3b6b4f" stroke-width="2"/><circle cx="24" cy="10" r="5" fill="#fff" stroke="#3b6b4f" stroke-width="2"/><line x1="36" y1="2" x2="36" y2="18" stroke="#3b6b4f" stroke-width="2"/></svg> cero o uno</span>
+ <span><span class="pk">PK</span> llave primaria</span><span><span class="fk">FK</span> llave foránea</span><span><span class="uk">UK</span> valor único</span>
+</div></div>
+<script>
+const E = {
+ medicamentos:[["PK","id","INT"],["FK","usuario_id","INT"],["","nombre","VARCHAR(40)"],["","dosis","VARCHAR(20)"],["","cantidad","VARCHAR(30)"],["","hora","TIME"],["","activo","TINYINT(1)"],["","creado_en","DATETIME"],["","actualizado_en","DATETIME"]],
+ citas:[["PK","id","INT"],["FK","usuario_id","INT"],["","medico","VARCHAR(60)"],["","especialidad","VARCHAR(50)"],["","fecha","DATE"],["","hora","TIME"],["","lugar","VARCHAR(80)"],["","estado","ENUM(3)"],["","creado_en","DATETIME"],["","actualizado_en","DATETIME"]],
+ estados_emocionales:[["PK","id","INT"],["FK","usuario_id","INT"],["","emocion","ENUM(5)"],["","comentario","VARCHAR(300) NULL"],["","registrado_en","DATETIME"]],
+ tomas_medicamento:[["PK","id","INT"],["FK UK","medicamento_id","INT"],["UK","fecha","DATE"],["","hora_programada","TIME"],["","estado","ENUM('tomado','no_tomado')"],["","registrado_en","DATETIME"]],
+ usuarios:[["PK","id","INT"],["","nombre","VARCHAR(60)"],["UK","correo","VARCHAR(120)"],["","clave_hash","VARCHAR(255)"],["","rol","ENUM('usuario','admin')"],["","creado_en","DATETIME"],["","actualizado_en","DATETIME"]],
+ preferencias:[["PK FK","usuario_id","INT"],["","avisos_app","TINYINT(1)"],["","notificaciones","TINYINT(1)"],["","minutos_cita","SMALLINT"],["","actualizado_en","DATETIME"]],
+ actividad_fisica:[["PK","id","INT"],["FK UK","usuario_id","INT"],["UK","fecha","DATE"],["","tipo","VARCHAR(30)"],["","minutos","SMALLINT (5–300)"],["","registrado_en","DATETIME"]],
+ agua:[["PK","id","INT"],["FK UK","usuario_id","INT"],["UK","fecha","DATE"],["","vasos","TINYINT (0–8)"],["","actualizado_en","DATETIME"]],
+ sueno:[["PK","id","INT"],["FK UK","usuario_id","INT"],["UK","fecha","DATE"],["","horas","DECIMAL(3,1) (1–16)"],["","registrado_en","DATETIME"]]
+};
+const ORDEN=["medicamentos","citas","estados_emocionales","tomas_medicamento","usuarios","preferencias","actividad_fisica","agua","sueno"];
+const grid=document.getElementById('grid');
+ORDEN.forEach(n=>{const d=document.createElement('div');d.className='ent'+(n==='usuarios'?' centro':'');d.id=n;
+ d.innerHTML='<h2>'+n+'</h2><table>'+E[n].map(r=>'<tr class="'+(r[0].includes('PK')?'n':'')+'"><td class="k">'+r[0].split(' ').filter(Boolean).map(k=>'<span class="'+k.toLowerCase()+'">'+k+'</span>').join(' ')+'</td><td class="a">'+r[1]+'</td><td class="t">'+r[2]+'</td></tr>').join('')+'</table>';
+ grid.appendChild(d);});
+const svg=document.getElementById('lineas'), NS='http://www.w3.org/2000/svg', C='#3b6b4f';
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e}
+function caja(id){const g=grid.getBoundingClientRect(),r=document.getElementById(id).getBoundingClientRect();return{l:r.left-g.left,r:r.right-g.left,t:r.top-g.top,b:r.bottom-g.top,cx:(r.left+r.right)/2-g.left,cy:(r.top+r.bottom)/2-g.top,h:r.height}}
+function ancla(b,lado,f){f=f??0.5;return lado==='t'?[b.cx,b.t]:lado==='b'?[b.cx,b.b]:lado==='l'?[b.l,b.t+b.h*f]:[b.r,b.t+b.h*f]}
+function uno(p,d,off){const n=[-d[1],d[0]];[off,off+7].forEach(o=>{const q=[p[0]+d[0]*o,p[1]+d[1]*o];el('line',{x1:q[0]+n[0]*9,y1:q[1]+n[1]*9,x2:q[0]-n[0]*9,y2:q[1]-n[1]*9,stroke:C,'stroke-width':2})})}
+function muchos(p,d){const n=[-d[1],d[0]],q=[p[0]-d[0]*16,p[1]-d[1]*16];
+ [[0,0],[1,9],[-1,9]].forEach(([s,w])=>el('line',{x1:q[0],y1:q[1],x2:p[0]+n[0]*w*s,y2:p[1]+n[1]*w*s,stroke:C,'stroke-width':2}));
+ const c=[p[0]-d[0]*25,p[1]-d[1]*25];el('circle',{cx:c[0],cy:c[1],r:5.5,fill:'#fff',stroke:C,'stroke-width':2})}
+function ceroUno(p,d){const n=[-d[1],d[0]],q=[p[0]-d[0]*10,p[1]-d[1]*10];
+ el('line',{x1:q[0]+n[0]*9,y1:q[1]+n[1]*9,x2:q[0]-n[0]*9,y2:q[1]-n[1]*9,stroke:C,'stroke-width':2});
+ const c=[p[0]-d[0]*22,p[1]-d[1]*22];el('circle',{cx:c[0],cy:c[1],r:5.5,fill:'#fff',stroke:C,'stroke-width':2})}
+function rel(a,la,fa,b,lb,fb,texto,tipo){
+ const A=ancla(caja(a),la,fa),Bp=ancla(caja(b),lb,fb),L=Math.hypot(Bp[0]-A[0],Bp[1]-A[1]),d=[(Bp[0]-A[0])/L,(Bp[1]-A[1])/L];
+ el('line',{x1:A[0],y1:A[1],x2:Bp[0],y2:Bp[1],stroke:C,'stroke-width':2});
+ uno(A,d,10); (tipo==='01'?ceroUno:muchos)(Bp,d);
+ const m=[(A[0]+Bp[0])/2,(A[1]+Bp[1])/2];
+ const t=el('text',{x:m[0],y:m[1]+4,'text-anchor':'middle',class:'etq'});t.textContent=texto;
+ const bb=t.getBBox();const r=el('rect',{x:bb.x-6,y:bb.y-3,width:bb.width+12,height:bb.height+6,rx:4,fill:'#fff',stroke:'#cfe6d7'});svg.insertBefore(r,t);}
+requestAnimationFrame(()=>{
+ rel('usuarios','t',0,'citas','b',0,'agenda (1:N)');
+ rel('usuarios','b',0,'agua','t',0,'consume (1:N)');
+ rel('usuarios','r',0.5,'preferencias','l',0.5,'configura (1:0..1)','01');
+ rel('usuarios','l',0.22,'medicamentos','r',0.55,'registra (1:N)');
+ rel('usuarios','r',0.22,'estados_emocionales','l',0.6,'registra (1:N)');
+ rel('usuarios','l',0.8,'actividad_fisica','r',0.45,'realiza (1:N)');
+ rel('usuarios','r',0.8,'sueno','l',0.45,'registra (1:N)');
+ rel('medicamentos','b',0,'tomas_medicamento','t',0,'tiene (1:N)');
+ window.__LISTO__=true;});
+</script></body></html>

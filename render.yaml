@@ -1,0 +1,49 @@
+# =========================================================
+#  Salud+ en Render (Blueprint)
+#  Render lee este archivo y crea el servicio automáticamente.
+#  Los datos de MySQL (Aiven) se escriben en el panel de Render
+#  la primera vez (los que dicen "sync: false").
+# =========================================================
+
+services:
+  - type: web
+    name: saludplus
+    runtime: python
+    plan: free
+    region: virginia            # la región más cercana a Colombia
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 2 --threads 2 --timeout 60
+    healthCheckPath: /api/salud
+    autoDeploy: true            # cada cambio en GitHub se publica solo
+
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: SECRET_KEY
+        generateValue: true     # Render crea una clave segura
+      - key: FLASK_DEBUG
+        value: "0"
+      - key: SESSION_COOKIE_SECURE
+        value: "1"
+      - key: DETRAS_DE_PROXY
+        value: "1"
+      - key: CREAR_TABLAS_AL_INICIAR
+        value: "1"
+      - key: CARGAR_DATOS_EJEMPLO      # crea los usuarios de prueba si no existen
+        value: "1"
+      - key: DB_SSL
+        value: "1"
+
+      # ---- Datos de Aiven: se piden al crear el servicio ----
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_SSL_CA
+        sync: false

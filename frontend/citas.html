@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <title>Salud+ | Citas médicas</title>
+
+    <meta name="theme-color" content="#08a34b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Salud+">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="img/icono.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="img/icono.svg">
+
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+    <main class="citas-pantalla">
+
+        <!-- ENCABEZADO -->
+        <header class="citas-header">
+
+            <button
+                class="boton-regresar-citas"
+                onclick="volverDashboard()">
+                ←
+            </button>
+
+            <h1>
+                Mis citas médicas
+            </h1>
+
+            <button
+                class="boton-agregar-cita"
+                onclick="abrirFormularioCita()">
+                +
+            </button>
+
+        </header>
+
+
+        <!-- PRÓXIMAS CITAS -->
+        <section class="seccion-citas">
+
+            <h2>
+                Próximas citas
+            </h2>
+
+            <div
+                id="listaCitas"
+                class="lista-citas">
+            </div>
+
+        </section>
+
+
+        <!-- FORMULARIO -->
+        <section
+            id="formularioCita"
+            class="formulario-cita oculto">
+
+            <div class="formulario-cita-header">
+
+                <h2>
+                    Agregar cita
+                </h2>
+
+                <button
+                    type="button"
+                    onclick="cerrarFormularioCita()">
+                    ×
+                </button>
+
+            </div>
+
+
+            <!-- MÉDICO -->
+            <div class="campo-cita">
+
+                <label for="nombreMedico">
+                    Nombre del médico
+                </label>
+
+                <input
+                    type="text"
+                    id="nombreMedico"
+                    placeholder="Ej. Dra. María López"
+                >
+
+            </div>
+
+
+            <!-- ESPECIALIDAD -->
+            <div class="campo-cita">
+
+                <label for="especialidad">
+                    Especialidad
+                </label>
+
+                <input
+                    type="text"
+                    id="especialidad"
+                    placeholder="Ej. Medicina general"
+                >
+
+            </div>
+
+
+            <!-- FECHA -->
+            <div class="campo-cita">
+
+                <label for="fechaCita">
+                    Fecha
+                </label>
+
+                <input
+                    type="date"
+                    id="fechaCita"
+                >
+
+            </div>
+
+
+            <!-- HORA -->
+            <div class="campo-cita">
+
+                <label for="horaCita">
+                    Hora
+                </label>
+
+                <input
+                    type="time"
+                    id="horaCita"
+                >
+
+            </div>
+
+
+            <!-- LUGAR -->
+            <div class="campo-cita">
+
+                <label for="lugarCita">
+                    Lugar
+                </label>
+
+                <input
+                    type="text"
+                    id="lugarCita"
+                    placeholder="Ej. Clínica Salud"
+                >
+
+            </div>
+
+
+            <!-- GUARDAR -->
+            <button
+                type="button"
+                class="boton-guardar-cita"
+                onclick="guardarCita()">
+                Guardar cita
+            </button>
+
+        </section>
+
+
+        <!-- NAVEGACIÓN -->
+        <nav class="barra-inferior">
+
+            <button
+                class="nav-item activo"
+                onclick="irAInicio()">
+
+                <span class="nav-icono">
+                    🏠
+                </span>
+
+                <span>
+                    Inicio
+                </span>
+
+            </button>
+
+
+            <button
+                class="nav-item"
+                onclick="irAHistorial()">
+
+                <span class="nav-icono">
+                    ▤
+                </span>
+
+                <span>
+                    Historial
+                </span>
+
+            </button>
+
+
+            <button
+                class="nav-item"
+                onclick="irAAjustes()">
+
+                <span class="nav-icono">
+                    ⚙
+                </span>
+
+                <span>
+                    Ajustes
+                </span>
+
+            </button>
+
+        </nav>
+
+    </main>
+
+
+    <script src="js/comun.js"></script>
+
+
+    <script src="js/citas.js"></script>
+
+</body>
+
+</html>

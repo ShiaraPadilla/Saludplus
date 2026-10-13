@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Salud+ | Ajustes</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+<main class="ajustes-pantalla">
+
+    <!-- ENCABEZADO -->
+    <header class="ajustes-header">
+
+        <button
+            type="button"
+            class="boton-regresar-ajustes"
+            onclick="volverDashboard()">
+            ←
+        </button>
+
+        <h1>Ajustes</h1>
+
+        <div class="espacio-header"></div>
+
+    </header>
+
+
+    <!-- CONTENIDO -->
+    <section class="ajustes-contenido">
+
+        <!-- PERFIL -->
+        <section class="ajustes-seccion">
+
+            <h2>👤 Mi perfil</h2>
+
+            <button
+                type="button"
+                class="opcion-ajustes"
+                onclick="abrirPerfil()">
+
+                <div class="opcion-ajustes-icono">
+                    👤
+                </div>
+
+                <div class="opcion-ajustes-texto">
+                    <strong>Mi información</strong>
+                    <span>Consulta tus datos personales</span>
+                </div>
+
+                <div class="opcion-ajustes-flecha">
+                    ›
+                </div>
+
+            </button>
+
+        </section>
+
+
+        <!-- RECORDATORIOS -->
+        <section class="ajustes-seccion">
+
+            <h2>🔔 Recordatorios</h2>
+
+            <button
+                type="button"
+                class="opcion-ajustes"
+                onclick="abrirRecordatorios()">
+
+                <div class="opcion-ajustes-icono">
+                    🔔
+                </div>
+
+                <div class="opcion-ajustes-texto">
+                    <strong>Configurar recordatorios</strong>
+                    <span>Medicamentos y citas médicas</span>
+                </div>
+
+                <div class="opcion-ajustes-flecha">
+                    ›
+                </div>
+
+            </button>
+
+        </section>
+
+
+        <!-- MEDICAMENTOS -->
+        <section class="ajustes-seccion">
+
+            <h2>💊 Medicamentos</h2>
+
+            <button
+                type="button"
+                class="opcion-ajustes"
+                onclick="abrirSeguimientoMedicamentos()">
+
+                <div class="opcion-ajustes-icono">
+                    💊
+                </div>
+
+                <div class="opcion-ajustes-texto">
+                    <strong>Seguimiento</strong>
+                    <span>Consulta si tomaste tus medicamentos</span>
+                </div>
+
+                <div class="opcion-ajustes-flecha">
+                    ›
+                </div>
+
+            </button>
+
+        </section>
+
+
+        <!-- INFORMES -->
+        <section class="ajustes-seccion">
+
+            <h2>📄 Informes</h2>
+
+            <button
+                type="button"
+                class="opcion-ajustes"
+                onclick="abrirInformes()">
+
+                <div class="opcion-ajustes-icono">
+                    📄
+                </div>
+
+                <div class="opcion-ajustes-texto">
+                    <strong>Informes de salud</strong>
+                    <span>Genera y comparte tu información</span>
+                </div>
+
+                <div class="opcion-ajustes-flecha">
+                    ›
+                </div>
+
+            </button>
+
+        </section>
+
+
+        <!-- PRIVACIDAD -->
+        <section class="ajustes-seccion">
+
+            <h2>🔒 Privacidad</h2>
+
+            <button
+                type="button"
+                class="opcion-ajustes"
+                onclick="cerrarSesion()">
+
+                <div class="opcion-ajustes-icono">
+                    🚪
+                </div>
+
+                <div class="opcion-ajustes-texto">
+                    <strong>Cerrar sesión</strong>
+                    <span>Salir de tu cuenta</span>
+                </div>
+
+                <div class="opcion-ajustes-flecha">
+                    ›
+                </div>
+
+            </button>
+
+        </section>
+
+    </section>
+
+
+    <!-- NAVEGACIÓN INFERIOR -->
+    <nav class="barra-inferior">
+
+        <button
+            type="button"
+            class="nav-item"
+            onclick="irAInicio()">
+
+            <span class="nav-icono">🏠</span>
+            <span>Inicio</span>
+
+        </button>
+
+
+        <button
+            type="button"
+            class="nav-item"
+            onclick="irAHistorial()">
+
+            <span class="nav-icono">▤</span>
+            <span>Historial</span>
+
+        </button>
+
+
+        <button
+            type="button"
+            class="nav-item activo"
+            onclick="irAAjustes()">
+
+            <span class="nav-icono">⚙</span>
+            <span>Ajustes</span>
+
+        </button>
+
+    </nav>
+
+</main>
+
+
+<script src="js/ajustes.js"></script>
+
+</body>
+</html>

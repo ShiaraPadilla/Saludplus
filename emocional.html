@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Salud+ | ¿Cómo me siento hoy?</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+    <main class="emocional-pantalla">
+
+        <!-- ENCABEZADO -->
+        <header class="emocional-header">
+
+            <button
+                type="button"
+                class="boton-regresar-emocional"
+                onclick="volverDashboard()">
+                ←
+            </button>
+
+            <h1>
+                ¿Cómo me siento hoy?
+            </h1>
+
+            <div class="espacio-header"></div>
+
+        </header>
+
+
+        <!-- CONTENIDO -->
+        <section class="emocional-contenido">
+
+
+            <!-- PREGUNTA -->
+            <h2 class="titulo-emocion">
+                Elige cómo te sientes:
+            </h2>
+
+
+            <!-- EMOCIONES -->
+            <div class="emociones">
+
+                <!-- MUY BIEN -->
+                <button
+                    type="button"
+                    class="boton-emocion"
+                    data-emocion="Muy bien"
+                    onclick="seleccionarEmocion('Muy bien', this)">
+
+                    <span class="emoji-emocion">
+                        😄
+                    </span>
+
+                    <span>
+                        Muy bien
+                    </span>
+
+                </button>
+
+
+                <!-- BIEN -->
+                <button
+                    type="button"
+                    class="boton-emocion"
+                    data-emocion="Bien"
+                    onclick="seleccionarEmocion('Bien', this)">
+
+                    <span class="emoji-emocion">
+                        🙂
+                    </span>
+
+                    <span>
+                        Bien
+                    </span>
+
+                </button>
+
+
+                <!-- REGULAR -->
+                <button
+                    type="button"
+                    class="boton-emocion"
+                    data-emocion="Regular"
+                    onclick="seleccionarEmocion('Regular', this)">
+
+                    <span class="emoji-emocion">
+                        😐
+                    </span>
+
+                    <span>
+                        Regular
+                    </span>
+
+                </button>
+
+
+                <!-- MAL -->
+                <button
+                    type="button"
+                    class="boton-emocion"
+                    data-emocion="Mal"
+                    onclick="seleccionarEmocion('Mal', this)">
+
+                    <span class="emoji-emocion">
+                        😞
+                    </span>
+
+                    <span>
+                        Mal
+                    </span>
+
+                </button>
+
+
+                <!-- MUY MAL -->
+                <button
+                    type="button"
+                    class="boton-emocion"
+                    data-emocion="Muy mal"
+                    onclick="seleccionarEmocion('Muy mal', this)">
+
+                    <span class="emoji-emocion">
+                        😠
+                    </span>
+
+                    <span>
+                        Muy mal
+                    </span>
+
+                </button>
+
+            </div>
+
+
+            <!-- COMENTARIO -->
+            <div class="comentario-emocional">
+
+                <h2>
+                    Cuéntanos cómo fue tu día:
+                </h2>
+
+                <textarea
+                    id="comentarioEmocional"
+                    maxlength="300"
+                    placeholder="Escribe aquí..."
+                    oninput="actualizarContador()">
+                </textarea>
+
+                <div
+                    id="contadorCaracteres"
+                    class="contador-caracteres">
+                    0/300
+                </div>
+
+            </div>
+
+
+            <!-- BOTÓN GUARDAR -->
+            <button
+                type="button"
+                class="boton-guardar-emocion"
+                onclick="guardarEstadoEmocional()">
+
+                Guardar
+
+            </button>
+
+        </section>
+
+
+        <!-- NAVEGACIÓN -->
+        <nav class="barra-inferior">
+
+            <button
+                type="button"
+                class="nav-item activo"
+                onclick="irAInicio()">
+
+                <span class="nav-icono">
+                    🏠
+                </span>
+
+                <span>
+                    Inicio
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="nav-item"
+                onclick="irAHistorial()">
+
+                <span class="nav-icono">
+                    ▤
+                </span>
+
+                <span>
+                    Historial
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="nav-item"
+                onclick="irAAjustes()">
+
+                <span class="nav-icono">
+                    ⚙
+                </span>
+
+                <span>
+                    Ajustes
+                </span>
+
+            </button>
+
+        </nav>
+
+    </main>
+
+
+    <script src="js/emocional.js"></script>
+
+</body>
+
+</html>

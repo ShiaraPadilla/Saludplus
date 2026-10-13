@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Salud+ | Administración</title>
+    <meta name="theme-color" content="#08a34b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Salud+">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="img/icono.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="img/icono.svg">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+    <main class="admin-pantalla">
+
+        <!-- ENCABEZADO -->
+        <header class="admin-header">
+
+            <button type="button" class="admin-volver" aria-label="Volver">←</button>
+
+            <div>
+                <h1>Panel de administración</h1>
+                <p id="adminActualizado">Cargando datos...</p>
+            </div>
+
+        </header>
+
+
+        <!-- INDICADORES -->
+        <section class="admin-indicadores" aria-label="Indicadores generales">
+
+            <article class="admin-indicador">
+                <span class="admin-indicador-icono">👥</span>
+                <strong id="indUsuarios">—</strong>
+                <span>Usuarios</span>
+            </article>
+
+            <article class="admin-indicador">
+                <span class="admin-indicador-icono">🆕</span>
+                <strong id="indNuevos">—</strong>
+                <span>Nuevos (7 días)</span>
+            </article>
+
+            <article class="admin-indicador">
+                <span class="admin-indicador-icono">💊</span>
+                <strong id="indMedicamentos">—</strong>
+                <span>Medicamentos activos</span>
+            </article>
+
+            <article class="admin-indicador">
+                <span class="admin-indicador-icono">📅</span>
+                <strong id="indCitas">—</strong>
+                <span>Citas pendientes</span>
+            </article>
+
+        </section>
+
+
+        <!-- CUMPLIMIENTO -->
+        <section class="admin-tarjeta">
+
+            <h2>💊 Cumplimiento de medicamentos</h2>
+
+            <p class="admin-subtexto">Tomas registradas en los últimos 7 días</p>
+
+            <div class="admin-cumplimiento">
+                <strong id="indCumplimiento">—</strong>
+                <span id="indTomas"></span>
+            </div>
+
+            <div class="admin-barra" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="barraCumplimiento">
+                <div id="barraCumplimientoRelleno"></div>
+            </div>
+
+        </section>
+
+
+        <!-- CITAS -->
+        <section class="admin-tarjeta">
+
+            <h2>📅 Citas médicas</h2>
+
+            <div class="admin-chips" id="adminCitas"></div>
+
+        </section>
+
+
+        <!-- EMOCIONES -->
+        <section class="admin-tarjeta">
+
+            <h2>🙂 Estado emocional</h2>
+
+            <p class="admin-subtexto">Registros de los últimos 30 días</p>
+
+            <div id="adminEmociones" class="admin-barras"></div>
+
+        </section>
+
+
+        <!-- BIENESTAR -->
+        <section class="admin-tarjeta">
+
+            <h2>💚 Registros de bienestar (7 días)</h2>
+
+            <div class="admin-chips" id="adminBienestar"></div>
+
+        </section>
+
+
+        <!-- USUARIOS -->
+        <section class="admin-tarjeta">
+
+            <h2>👥 Usuarios registrados</h2>
+
+            <p class="admin-subtexto">
+                Por privacidad solo se muestran totales, no el contenido
+                de los registros de salud.
+            </p>
+
+            <div id="adminUsuarios" class="admin-usuarios"></div>
+
+        </section>
+
+
+        <!-- BARRA INFERIOR -->
+        <nav class="barra-inferior">
+
+            <button type="button" class="nav-item">
+                <span class="nav-icono">🏠</span>
+                <span>Inicio</span>
+            </button>
+
+            <button type="button" class="nav-item">
+                <span class="nav-icono">▤</span>
+                <span>Historial</span>
+            </button>
+
+            <button type="button" class="nav-item">
+                <span class="nav-icono">⚙</span>
+                <span>Ajustes</span>
+            </button>
+
+        </nav>
+
+    </main>
+
+
+    <script src="js/comun.js"></script>
+    <script src="js/admin.js"></script>
+
+</body>
+
+</html>

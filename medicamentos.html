@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Salud+ | Mis medicamentos</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+    <main class="medicamentos-pantalla">
+
+        <!-- ENCABEZADO -->
+        <header class="medicamentos-header">
+
+            <button
+                class="boton-regresar"
+                onclick="volverDashboard()">
+                ←
+            </button>
+
+            <h1>Mis medicamentos</h1>
+
+            <button
+                class="boton-agregar"
+                onclick="abrirFormularioMedicamento()">
+                +
+            </button>
+
+        </header>
+
+
+        <!-- ACTIVOS / HISTORIAL -->
+        <div class="medicamentos-tabs">
+
+            <button
+                id="tabActivos"
+                class="tab-medicamento activo"
+                onclick="mostrarActivos()">
+                Activos
+            </button>
+
+            <button
+                id="tabHistorial"
+                class="tab-medicamento"
+                onclick="mostrarHistorial()">
+                Historial
+            </button>
+
+        </div>
+
+
+        <!-- LISTA DE MEDICAMENTOS -->
+        <section
+            id="listaMedicamentos"
+            class="lista-medicamentos">
+        </section>
+
+
+        <!-- INFORMACIÓN -->
+        <div class="informacion-medicamento">
+
+            <div class="info-icono">
+                i
+            </div>
+
+            <p>
+                Toca un medicamento para
+                <br>
+                ver más detalles
+            </p>
+
+        </div>
+
+
+        <!-- FORMULARIO AGREGAR -->
+        <section
+            id="formularioMedicamento"
+            class="formulario-medicamento oculto">
+
+            <div class="formulario-header">
+
+                <h2>
+                    Agregar medicamento
+                </h2>
+
+                <button
+                    onclick="cerrarFormularioMedicamento()">
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="campo-medicamento">
+
+                <label for="nombreMedicamento">
+                    Nombre del medicamento
+                </label>
+
+                <input
+                    type="text"
+                    id="nombreMedicamento"
+                    placeholder="Ej. Losartán"
+                >
+
+            </div>
+
+
+            <div class="campo-medicamento">
+
+                <label for="dosisMedicamento">
+                    Dosis
+                </label>
+
+                <input
+                    type="text"
+                    id="dosisMedicamento"
+                    placeholder="Ej. 50 mg"
+                >
+
+            </div>
+
+
+            <div class="campo-medicamento">
+
+                <label for="cantidadMedicamento">
+                    Cantidad
+                </label>
+
+                <input
+                    type="text"
+                    id="cantidadMedicamento"
+                    placeholder="Ej. 1 tableta"
+                >
+
+            </div>
+
+
+            <div class="campo-medicamento">
+
+                <label for="horaMedicamento">
+                    Hora
+                </label>
+
+                <input
+                    type="time"
+                    id="horaMedicamento"
+                >
+
+            </div>
+
+
+            <button
+                class="boton-guardar-medicamento"
+                onclick="guardarMedicamento()">
+                Guardar medicamento
+            </button>
+
+        </section>
+
+
+        <!-- NAVEGACIÓN -->
+        <nav class="barra-inferior">
+
+            <button
+                class="nav-item"
+                onclick="irAInicio()">
+
+                <span class="nav-icono">
+                    🏠
+                </span>
+
+                <span>
+                    Inicio
+                </span>
+
+            </button>
+
+
+            <button
+                class="nav-item activo">
+
+                <span class="nav-icono">
+                    ▤
+                </span>
+
+                <span>
+                    Historial
+                </span>
+
+            </button>
+
+
+            <button
+                class="nav-item"
+                onclick="irAAjustes()">
+
+                <span class="nav-icono">
+                    ⚙
+                </span>
+
+                <span>
+                    Ajustes
+                </span>
+
+            </button>
+
+        </nav>
+
+    </main>
+
+
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>

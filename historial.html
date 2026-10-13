@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Salud+ | Historial</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+
+</head>
+
+<body>
+
+    <main class="historial-pantalla">
+
+        <!-- ENCABEZADO -->
+
+        <header class="historial-header">
+
+            <button
+                type="button"
+                class="boton-regresar-historial"
+                onclick="volverDashboard()">
+
+                ←
+
+            </button>
+
+            <h1>
+                Mi historial
+            </h1>
+
+            <div class="espacio-header-historial"></div>
+
+        </header>
+
+
+        <!-- TÍTULO -->
+
+        <section class="historial-titulo">
+
+            <h2>
+                Mis registros
+            </h2>
+
+            <p>
+                Aquí puedes consultar cómo te has sentido.
+            </p>
+
+        </section>
+
+
+        <!-- FILTRO -->
+
+        <div class="historial-filtro">
+
+            <button
+                type="button"
+                class="filtro-activo"
+                onclick="mostrarHistorialEmocional()">
+
+                😊 Estados emocionales
+
+            </button>
+
+        </div>
+
+
+        <!-- LISTA -->
+
+        <section
+            id="listaHistorial"
+            class="lista-historial">
+
+        </section>
+
+
+        <!-- NAVEGACIÓN -->
+
+        <nav class="barra-inferior">
+
+            <button
+                type="button"
+                class="nav-item"
+                onclick="irAInicio()">
+
+                <span class="nav-icono">
+                    🏠
+                </span>
+
+                <span>
+                    Inicio
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="nav-item activo">
+
+                <span class="nav-icono">
+                    ▤
+                </span>
+
+                <span>
+                    Historial
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="nav-item"
+                onclick="irAAjustes()">
+
+                <span class="nav-icono">
+                    ⚙
+                </span>
+
+                <span>
+                    Ajustes
+                </span>
+
+            </button>
+
+        </nav>
+
+    </main>
+
+
+    <script src="js/historial.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Salud+ | Crear cuenta</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+    <main class="registro-pantalla">
+
+        <!-- LOGO -->
+        <div class="registro-logo">
+
+            <div class="logo-salud-icono">
+                <span>+</span>
+            </div>
+
+            <span class="logo-salud-texto">
+                Salud+
+            </span>
+
+        </div>
+
+
+        <!-- TÍTULO -->
+        <div class="registro-titulo">
+
+            <h1>Crear cuenta</h1>
+
+            <p>Completa tus datos para comenzar</p>
+
+        </div>
+
+
+        <!-- FORMULARIO -->
+        <form id="formRegistro" class="form-registro">
+
+
+            <!-- NOMBRE -->
+            <div class="campo-registro">
+
+                <label for="nombre">
+                    Nombre completo
+                </label>
+
+                <div class="input-registro">
+
+                    <span class="registro-icono">
+                        ♙
+                    </span>
+
+                    <input
+                        type="text"
+                        id="nombre"
+                        placeholder="Ingresa tu nombre"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- CORREO -->
+            <div class="campo-registro">
+
+                <label for="correoRegistro">
+                    Correo electrónico
+                </label>
+
+                <div class="input-registro">
+
+                    <span class="registro-icono">
+                        ✉
+                    </span>
+
+                    <input
+                        type="email"
+                        id="correoRegistro"
+                        placeholder="Ingresa tu correo"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- CONTRASEÑA -->
+            <div class="campo-registro">
+
+                <label for="contrasenaRegistro">
+                    Contraseña
+                </label>
+
+                <div class="input-registro">
+
+                    <span class="registro-icono">
+                        🔒
+                    </span>
+
+                    <input
+                        type="password"
+                        id="contrasenaRegistro"
+                        placeholder="Crea una contraseña"
+                        required
+                    >
+
+                    <button
+                        type="button"
+                        class="ojo-registro"
+                        onclick="mostrarContrasenaRegistro()">
+                        👁
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- CONFIRMAR CONTRASEÑA -->
+            <div class="campo-registro">
+
+                <label for="confirmarContrasena">
+                    Confirmar contraseña
+                </label>
+
+                <div class="input-registro">
+
+                    <span class="registro-icono">
+                        🔒
+                    </span>
+
+                    <input
+                        type="password"
+                        id="confirmarContrasena"
+                        placeholder="Repite tu contraseña"
+                        required
+                    >
+
+                </div>
+
+            </div>
+
+
+            <!-- BOTÓN CREAR CUENTA -->
+            <button
+                type="submit"
+                class="boton-crear">
+                Crear cuenta
+            </button>
+
+        </form>
+
+
+        <!-- SEPARADOR -->
+        <div class="separador-registro">
+
+            <span></span>
+
+            <b>o</b>
+
+            <span></span>
+
+        </div>
+
+
+        <!-- GOOGLE -->
+        <button
+            type="button"
+            class="boton-google"
+            onclick="continuarGoogle()">
+
+            <span class="google-letra">
+                G
+            </span>
+
+            <span>
+                Continuar con Google
+            </span>
+
+        </button>
+
+
+        <!-- VOLVER AL LOGIN -->
+        <div class="volver-login">
+
+            <span>
+                ¿Ya tienes una cuenta?
+            </span>
+
+            <a
+                href="login.html">
+                Iniciar sesión
+            </a>
+
+        </div>
+
+    </main>
+
+
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>

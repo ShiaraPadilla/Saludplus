@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+    <title>Salud+ | Mi bienestar</title>
+
+    <meta name="theme-color" content="#08a34b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Salud+">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="img/icono.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="img/icono.svg">
+
+    <link rel="stylesheet" href="css/estilos.css">
+
+</head>
+
+<body>
+
+    <main class="bienestar-pantalla">
+
+        <!-- ENCABEZADO -->
+
+        <header class="bienestar-header">
+
+            <button
+                type="button"
+                class="boton-regresar-bienestar"
+                onclick="volverDashboard()">
+
+                ←
+
+            </button>
+
+            <h1>
+                Mi bienestar
+            </h1>
+
+            <button
+                type="button"
+                class="boton-calendario-bienestar"
+                onclick="seleccionarPeriodo()">
+
+                📅
+
+            </button>
+
+        </header>
+
+
+        <!-- PERIODO -->
+
+        <div class="periodo-bienestar">
+
+            Últimos 7 días
+
+        </div>
+
+
+        <!-- ESTADO EMOCIONAL -->
+
+        <section class="indicador-bienestar">
+
+            <div class="indicador-titulo">
+
+                <span>
+                    Estado emocional
+                </span>
+
+                <span
+                    id="emojiBienestar"
+                    class="indicador-emoji">
+                    🙂
+                </span>
+
+            </div>
+
+            <div
+                id="estadoEmocionalBienestar"
+                class="indicador-resultado">
+
+                Bien
+
+            </div>
+
+        </section>
+
+
+        <!-- MEDICAMENTOS -->
+
+        <section class="indicador-bienestar">
+
+            <div class="indicador-titulo">
+
+                <span>
+                    Medicamentos tomados
+                </span>
+
+                <strong
+                    id="medicamentosBienestar">
+
+                    0%
+
+                </strong>
+
+            </div>
+
+            <div class="barra-progreso">
+
+                <div
+                    id="barraMedicamentos"
+                    class="barra-progreso-interna">
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CITAS -->
+
+        <section class="indicador-bienestar">
+
+            <div class="indicador-titulo">
+
+                <span>
+                    Citas cumplidas
+                </span>
+
+                <strong
+                    id="citasBienestar">
+
+                    0/0
+
+                </strong>
+
+            </div>
+
+        </section>
+
+
+        <!-- ACTIVIDAD FÍSICA -->
+
+        <section class="indicador-bienestar indicador-interactivo">
+
+            <div class="indicador-titulo">
+
+                <span>
+                    Actividad física
+                </span>
+
+                <strong
+                    id="actividadBienestar">
+
+                    0/7 días
+
+                </strong>
+
+            </div>
+
+            <button
+                type="button"
+                class="boton-registrar-bienestar"
+                onclick="registrarActividad()">
+
+                Registrar actividad
+
+            </button>
+
+        </section>
+
+<!-- FORMULARIO ACTIVIDAD FÍSICA -->
+
+<section
+    id="formularioActividad"
+    class="formulario-bienestar oculto">
+
+    <div class="formulario-bienestar-header">
+
+        <h2>
+            🏃 Registrar actividad
+        </h2>
+
+        <button
+            type="button"
+            onclick="cerrarActividad()">
+            ×
+        </button>
+
+    </div>
+
+
+    <p class="texto-formulario-bienestar">
+        ¿Qué actividad realizaste hoy?
+    </p>
+
+
+    <div class="opciones-actividad">
+
+        <button
+            type="button"
+            onclick="seleccionarActividad('Caminar', this)">
+            🚶
+            <span>Caminar</span>
+        </button>
+
+
+        <button
+            type="button"
+            onclick="seleccionarActividad('Ejercicios suaves', this)">
+            🧘
+            <span>Ejercicios suaves</span>
+        </button>
+
+
+        <button
+            type="button"
+            onclick="seleccionarActividad('Bicicleta', this)">
+            🚴
+            <span>Bicicleta</span>
+        </button>
+
+
+        <button
+            type="button"
+            onclick="seleccionarActividad('Otra', this)">
+            🏃
+            <span>Otra actividad</span>
+        </button>
+
+    </div>
+
+
+    <label
+        class="label-bienestar"
+        for="minutosActividad">
+
+        ¿Cuántos minutos?
+
+    </label>
+
+
+    <input
+        type="number"
+        id="minutosActividad"
+        class="input-bienestar"
+        min="1"
+        max="300"
+        placeholder="Ej. 30">
+
+
+    <button
+        type="button"
+        class="boton-guardar-bienestar"
+        onclick="guardarActividad()">
+
+        Guardar actividad
+
+    </button>
+
+</section>
+
+<!-- AGUA -->
+<section class="indicador-bienestar indicador-interactivo">
+    <div class="indicador-titulo">
+        <span>Agua consumida</span>
+        <strong id="aguaBienestar">0/8 vasos</strong>
+    </div>
+
+    <div class="vasos-agua" id="vasosAgua">
+        <span class="vaso-agua">🥤</span>
+        <span class="vaso-agua">🥤</span>
+        <span class="vaso-agua">🥤</span>
+        <span class="vaso-agua">🥤</span>
+        <span class="vaso-agua">🥤</span>
+        <span class="vaso-agua">🥤</span>
+        <span class="vaso-agua">🥤</span>
+        <span class="vaso-agua">🥤</span>
+    </div>
+
+    <button
+        type="button"
+        class="boton-registrar-bienestar"
+        onclick="registrarAgua()">
+        💧 Registrar vaso
+    </button>
+</section>
+
+   <!-- SUEÑO -->
+<section class="indicador-bienestar indicador-interactivo">
+
+    <div class="indicador-titulo">
+        <span>Sueño</span>
+        <strong id="suenoBienestar">Sin registro</strong>
+    </div>
+
+    <div
+        id="formularioSueno"
+        class="formulario-bienestar oculto">
+
+        <div class="formulario-bienestar-header">
+            <h2>😴 Registrar sueño</h2>
+
+            <button
+                type="button"
+                onclick="cerrarSueno()">
+                ×
+            </button>
+        </div>
+
+        <p class="texto-formulario-bienestar">
+            ¿Cuántas horas dormiste anoche?
+        </p>
+
+        <label
+            class="label-bienestar"
+            for="horasSuenoInput">
+            Horas de sueño
+        </label>
+
+        <input
+            type="number"
+            id="horasSuenoInput"
+            class="input-bienestar"
+            min="1"
+            max="24"
+            step="0.5"
+            placeholder="Ej. 8">
+
+        <button
+            type="button"
+            class="boton-guardar-bienestar"
+            onclick="guardarSueno()">
+            Guardar sueño
+        </button>
+
+    </div>
+
+    <button
+        type="button"
+        class="boton-registrar-bienestar"
+        onclick="registrarSueno()">
+        😴 Registrar sueño
+    </button>
+
+</section>
+
+
+        <!-- NAVEGACIÓN -->
+
+        <nav class="barra-inferior">
+
+            <button
+                type="button"
+                class="nav-item activo"
+                onclick="irAInicio()">
+
+                <span class="nav-icono">
+                    🏠
+                </span>
+
+                <span>
+                    Inicio
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="nav-item"
+                onclick="irAHistorial()">
+
+                <span class="nav-icono">
+                    ▤
+                </span>
+
+                <span>
+                    Historial
+                </span>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="nav-item"
+                onclick="irAAjustes()">
+
+                <span class="nav-icono">
+                    ⚙
+                </span>
+
+                <span>
+                    Ajustes
+                </span>
+
+            </button>
+
+        </nav>
+
+    </main>
+
+
+    <script src="js/comun.js"></script>
+
+
+    <script src="js/bienestar.js"></script>
+
+</body>
+
+</html>
