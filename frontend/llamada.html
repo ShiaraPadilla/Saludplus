@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- La página vive en /llamada/<id>: todas las rutas relativas parten de la raíz -->
+    <base href="/">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Salud+ | Videollamada</title>
+    <meta name="theme-color" content="#0f1a14">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="img/icono.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body class="llamada-cuerpo">
+
+    <main class="llamada-pantalla">
+
+        <!-- QUIÉN Y ESTADO -->
+        <header class="llamada-cabecera">
+
+            <div class="llamada-avatar" id="avatarOtro" aria-hidden="true">?</div>
+
+            <div class="llamada-datos">
+                <h1 id="nombreOtro">Videollamada</h1>
+                <p id="estadoLlamada" class="llamada-estado" aria-live="polite">Conectando…</p>
+                <p id="citaLlamada" class="llamada-cita" hidden></p>
+            </div>
+
+            <span id="cronometro" class="llamada-cronometro" hidden>00:00</span>
+
+        </header>
+
+
+        <!-- MODO DE PRUEBA (sin DAILY_API_KEY) -->
+        <div id="avisoSimulado" class="llamada-simulado" hidden>
+            🧪 <strong>Modo de prueba:</strong> el servidor no tiene <code>DAILY_API_KEY</code>.
+            La llamada se registra, pero sin video real.
+        </div>
+
+
+        <!-- VIDEO (Daily.co) -->
+        <div id="video" class="llamada-video">
+            <div id="escenaEspera" class="llamada-espera">
+                <div class="llamada-onda" aria-hidden="true"></div>
+                <div class="llamada-avatar llamada-avatar-grande" id="avatarGrande" aria-hidden="true">?</div>
+            </div>
+        </div>
+
+
+        <!-- CONTROLES GRANDES (RF-05: mínimo 64 px, alto contraste) -->
+        <nav class="llamada-controles" aria-label="Controles de la llamada">
+
+            <button type="button" id="botonMicrofono" class="boton-control" aria-pressed="true">
+                <span aria-hidden="true">🎤</span>
+                <small>Micrófono</small>
+            </button>
+
+            <button type="button" id="botonColgar" class="boton-llamada boton-colgar" aria-label="Colgar">
+                <span aria-hidden="true">📞</span>
+                <small>Colgar</small>
+            </button>
+
+            <button type="button" id="botonCamara" class="boton-control" aria-pressed="true">
+                <span aria-hidden="true">📷</span>
+                <small>Cámara</small>
+            </button>
+
+        </nav>
+
+
+        <!-- FIN DE LA LLAMADA -->
+        <section id="llamadaFin" class="llamada-fin" hidden>
+            <div class="llamada-fin-icono" id="finIcono" aria-hidden="true">📞</div>
+            <h2 id="finTitulo">Llamada finalizada</h2>
+            <p id="finDetalle"></p>
+            <button type="button" id="botonVolver" class="boton-volver-llamada">Volver al inicio</button>
+        </section>
+
+    </main>
+
+    <!-- daily-js: cliente de video de Daily.co -->
+    <script crossorigin src="https://unpkg.com/@daily-co/daily-js"></script>
+    <script src="js/comun.js"></script>
+    <script src="js/llamada.js"></script>
+
+</body>
+
+</html>

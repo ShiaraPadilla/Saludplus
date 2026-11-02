@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Salud+ | Panel del cuidador</title>
+    <meta name="theme-color" content="#08a34b">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Salud+">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="img/icono.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+    <main class="cuidador-pantalla">
+
+        <!-- ENCABEZADO -->
+        <header class="dashboard-header">
+
+            <div class="dashboard-saludo">
+                <h1>¡Hola, <span id="nombreCuidador">Cuidador</span>! 👋</h1>
+                <p class="dashboard-fecha">Personas que cuidas</p>
+            </div>
+
+        </header>
+
+
+        <!-- AVISO PARA ACTIVAR NOTIFICACIONES -->
+        <section id="avisoPush" class="cuidador-aviso-push" hidden>
+            <div>
+                <strong>🔔 Activa las notificaciones</strong>
+                <span>Para recibir las videollamadas y las alertas de tomas olvidadas.</span>
+            </div>
+            <button type="button" id="botonActivarPush" class="panel-boton-principal">Activar</button>
+        </section>
+
+
+        <!-- ALERTAS DE TOMAS OMITIDAS -->
+        <section id="seccionAlertas" class="cuidador-alertas" hidden>
+            <h2>⚠️ Tomas no registradas</h2>
+            <div id="listaAlertas"></div>
+        </section>
+
+
+        <!-- PERSONAS -->
+        <section id="listaPersonas" class="cuidador-personas" aria-live="polite">
+            <p class="mensaje-historial">⏳ Cargando…</p>
+        </section>
+
+
+        <!-- VINCULAR -->
+        <section class="cuidador-vincular">
+            <h2>➕ Vincular a una persona</h2>
+            <p>Pídele a la persona que cuidas el código de 6 números que aparece en
+               <strong>Ajustes → Mi cuidador</strong> de su app.</p>
+            <div class="cuidador-codigo-fila">
+                <input type="text" id="codigoVinculo" inputmode="numeric" maxlength="6"
+                       autocomplete="one-time-code" placeholder="000000" aria-label="Código de 6 números">
+                <button type="button" id="botonVincular" class="panel-boton-principal">Vincular</button>
+            </div>
+        </section>
+
+
+        <!-- BARRA INFERIOR -->
+        <nav class="barra-inferior">
+
+            <button type="button" class="nav-item">
+                <span class="nav-icono">🏠</span>
+                <span>Inicio</span>
+            </button>
+
+            <button type="button" class="nav-item">
+                <span class="nav-icono">▤</span>
+                <span>Historial</span>
+            </button>
+
+            <button type="button" class="nav-item">
+                <span class="nav-icono">⚙</span>
+                <span>Ajustes</span>
+            </button>
+
+        </nav>
+
+    </main>
+
+    <script src="js/comun.js"></script>
+    <script src="js/cuidador.js"></script>
+
+</body>
+
+</html>
