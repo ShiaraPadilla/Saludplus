@@ -4,7 +4,7 @@
 
 | Archivo | Contenido |
 |---|---|
-| `schema.sql` | **Esquema**: las 9 tablas con tipos de datos, llaves primarias, llaves foráneas, llaves únicas y restricciones `CHECK`. |
+| `schema.sql` | **Esquema**: las 13 tablas con tipos de datos, llaves primarias, llaves foráneas, llaves únicas y restricciones `CHECK`. |
 | `saludplus_respaldo.sql` | **Base de datos con datos de ejemplo** (estructura + datos), lista para restaurar. |
 | `diagrama_er.png` | **Diagrama entidad-relación** en alta resolución (4500 px), notación pata de gallo. |
 | `diagrama_er_fuente.html` | Fuente editable del diagrama (ábrelo en el navegador). |
@@ -27,6 +27,7 @@ Se crea la base `saludplus` con estos usuarios de prueba:
 | Administrador | `admin@saludplus.com` | `Admin2026*` |
 | Usuario regular | `maria@saludplus.com` | `Maria2026*` |
 | Usuario regular | `jorge@saludplus.com` | `Jorge2026*` |
+| Cuidador | `carlos@saludplus.com` | `Carlos2026*` |
 
 > Para regenerar los datos con fechas del día de hoy: `python cargar_datos_ejemplo.py --reiniciar`
 > Para volver a generar este respaldo: `python exportar_respaldo.py`
@@ -45,7 +46,11 @@ Se crea la base `saludplus` con estos usuarios de prueba:
 | `actividad_fisica` | Actividad del día (tipo y minutos) | usuarios 1 : N |
 | `agua` | Vasos de agua por día | usuarios 1 : N |
 | `sueno` | Horas de sueño por noche | usuarios 1 : N |
-| `preferencias` | Configuración de recordatorios | usuarios 1 : 0..1 |
+| `preferencias` | Configuración de recordatorios y lectura en voz alta | usuarios 1 : 0..1 |
+| `vinculos_cuidado` 🆕 | Vínculo adulto ↔ cuidador por código de 6 dígitos (vence en 24 h) | usuarios 1 : N (como adulto y como cuidador) |
+| `llamadas` 🆕 | Videollamadas: sala privada, participantes, inicio, fin | usuarios 1 : N (inicia / recibe), citas 0..1 : N |
+| `suscripciones_push` 🆕 | Dispositivos que reciben notificaciones | usuarios 1 : N |
+| `alertas_enviadas` 🆕 | Alertas de toma omitida ya enviadas (una por toma) | medicamentos 1 : N |
 
 ## Reglas de integridad
 - **Llaves foráneas con `ON DELETE CASCADE`:** si se elimina un usuario, se borran todos sus registros, sin dejar datos huérfanos.
@@ -55,6 +60,10 @@ Se crea la base `saludplus` con estos usuarios de prueba:
   - `agua (usuario_id, fecha)`
   - `sueno (usuario_id, fecha)`
 - **Correo único** en `usuarios`.
+- **Requerimiento avanzado:**
+  - un código de vínculo único (`uq_vinculo_codigo`) y un solo vínculo por pareja adulto–cuidador (`uq_vinculo`);
+  - llave primaria `(medicamento_id, fecha, tipo)` en `alertas_enviadas`, para que **nunca** se envíe dos veces la misma alerta, aunque la tarea corra muchas veces;
+  - llamadas con `ON DELETE SET NULL` hacia `citas`: si se borra la cita, el registro de la llamada se conserva.
 - **Rangos válidos** con `CHECK`:
   - minutos de actividad entre 5 y 300
   - vasos de agua entre 0 y 8

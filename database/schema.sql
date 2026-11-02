@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     nombre          VARCHAR(60)   NOT NULL,
     correo          VARCHAR(120)  NOT NULL,
     clave_hash      VARCHAR(255)  NOT NULL,      -- nunca la contraseña en texto plano
-    rol             ENUM('usuario', 'admin') NOT NULL DEFAULT 'usuario',
+    rol             ENUM('usuario', 'cuidador', 'admin') NOT NULL DEFAULT 'usuario',
     creado_en       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     actualizado_en  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
                                   ON UPDATE CURRENT_TIMESTAMP,
@@ -183,10 +183,105 @@ CREATE TABLE IF NOT EXISTS preferencias (
     avisos_app      TINYINT(1)    NOT NULL DEFAULT 1,
     notificaciones  TINYINT(1)    NOT NULL DEFAULT 0,
     minutos_cita    SMALLINT UNSIGNED NOT NULL DEFAULT 60,
+    voz_activa      TINYINT(1)    NOT NULL DEFAULT 0,       -- leer recordatorios en voz alta
     actualizado_en  DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
                                   ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (usuario_id),
     CONSTRAINT fk_preferencias_usuario
         FOREIGN KEY (usuario_id) REFERENCES usuarios (id)
         ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- =========================================================
+--  REQUERIMIENTO AVANZADO: rol cuidador y videollamada
+-- =========================================================
+
+-- ---------------------------------------------------------
+-- 10. VÍNCULOS ADULTO MAYOR ↔ CUIDADOR
+--     El adulto genera un código de 6 dígitos (vence en 24 h);
+--     el cuidador lo ingresa y el vínculo queda 'activo'.
+--     Se usa INT UNSIGNED (y no BIGINT) para coincidir con usuarios.id.
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS vinculos_cuidado (
+    id              INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    adulto_id       INT UNSIGNED  NOT NULL,
+    cuidador_id     INT UNSIGNED  NULL,                     -- NULL mientras el código está pendiente
+    codigo          CHAR(6)       NULL,
+    codigo_vence    DATETIME      NULL,
+    estado          ENUM('pendiente', 'activo', 'revocado') NOT NULL DEFAULT 'pendiente',
+    creado_en       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    vinculado_en    DATETIME      NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_vinculo (adulto_id, cuidador_id),
+    UNIQUE KEY uq_vinculo_codigo (codigo),
+    KEY ix_vinculos_cuidador (cuidador_id, estado),
+    CONSTRAINT fk_vinculos_adulto
+        FOREIGN KEY (adulto_id) REFERENCES usuarios (id) ON DELETE CASCADE,
+    CONSTRAINT fk_vinculos_cuidador
+        FOREIGN KEY (cuidador_id) REFERENCES usuarios (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------
+-- 11. LLAMADAS (salas privadas de Daily.co)
+--     La duración se calcula: finalizada_en - iniciada_en.
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS llamadas (
+    id              INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    sala            VARCHAR(80)   NOT NULL,
+    sala_url        VARCHAR(255)  NOT NULL,
+    sala_vence      DATETIME      NOT NULL,
+    iniciador_id    INT UNSIGNED  NOT NULL,
+    receptor_id     INT UNSIGNED  NOT NULL,
+    cita_id         INT UNSIGNED  NULL,
+    estado          ENUM('sonando', 'en_curso', 'finalizada', 'perdida') NOT NULL DEFAULT 'sonando',
+    creada_en       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    iniciada_en     DATETIME      NULL,
+    finalizada_en   DATETIME      NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_llamadas_sala (sala),
+    KEY ix_llamadas_receptor (receptor_id, estado, creada_en),
+    KEY ix_llamadas_iniciador (iniciador_id, creada_en),
+    CONSTRAINT fk_llamadas_iniciador
+        FOREIGN KEY (iniciador_id) REFERENCES usuarios (id) ON DELETE CASCADE,
+    CONSTRAINT fk_llamadas_receptor
+        FOREIGN KEY (receptor_id) REFERENCES usuarios (id) ON DELETE CASCADE,
+    CONSTRAINT fk_llamadas_cita
+        FOREIGN KEY (cita_id) REFERENCES citas (id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------
+-- 12. SUSCRIPCIONES WEB PUSH (un registro por navegador/celular)
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS suscripciones_push (
+    id              INT UNSIGNED  NOT NULL AUTO_INCREMENT,
+    usuario_id      INT UNSIGNED  NOT NULL,
+    endpoint        VARCHAR(500)  NOT NULL,
+    p256dh          VARCHAR(200)  NOT NULL,
+    auth            VARCHAR(100)  NOT NULL,
+    creado_en       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_push_endpoint (endpoint),
+    KEY ix_push_usuario (usuario_id),
+    CONSTRAINT fk_push_usuario
+        FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------
+-- 13. ALERTAS ENVIADAS (evita avisar dos veces la misma toma)
+--     Una toma programada = (medicamento_id, fecha).
+--     tipo: 'recordatorio' (al adulto, a la hora) o
+--           'toma_omitida' (al cuidador, +30 min sin "Lo tomé").
+-- ---------------------------------------------------------
+CREATE TABLE IF NOT EXISTS alertas_enviadas (
+    medicamento_id  INT UNSIGNED  NOT NULL,
+    fecha           DATE          NOT NULL,
+    tipo            ENUM('recordatorio', 'toma_omitida') NOT NULL,
+    enviada_en      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (medicamento_id, fecha, tipo),
+    CONSTRAINT fk_alertas_medicamento
+        FOREIGN KEY (medicamento_id) REFERENCES medicamentos (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
