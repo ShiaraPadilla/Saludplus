@@ -138,6 +138,14 @@ function crearTarjetaCita(cita, pasada) {
         ${
             estado === "pendiente"
             ? `
+            ${!pasada ? `
+            <button
+                type="button"
+                class="boton-videollamada-cita"
+                onclick="iniciarLlamada({ cita_id: leerLista('citasMedicas')[${cita.indice}].id })">
+                📹 Videollamada con mi familiar
+            </button>
+            ` : ""}
             <div class="acciones-cita">
                 <button
                     type="button"

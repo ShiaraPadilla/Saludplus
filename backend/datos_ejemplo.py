@@ -4,6 +4,7 @@ Usuarios de prueba y datos de ejemplo para la evaluación.
     Administrador:   admin@saludplus.com  /  Admin2026*
     Usuario regular: maria@saludplus.com  /  Maria2026*
     Usuario regular: jorge@saludplus.com  /  Jorge2026*
+    Cuidador:        carlos@saludplus.com /  Carlos2026*   (hijo de María, ya vinculado)
 
 Las fechas se calculan a partir de HOY (hora de Colombia), así la app
 siempre muestra información reciente.
@@ -27,6 +28,7 @@ USUARIOS_PRUEBA = [
     {"nombre": "Administrador Salud+", "correo": "admin@saludplus.com", "clave": "Admin2026*", "rol": "admin"},
     {"nombre": "María Rodríguez", "correo": "maria@saludplus.com", "clave": "Maria2026*", "rol": "usuario"},
     {"nombre": "Jorge Pérez", "correo": "jorge@saludplus.com", "clave": "Jorge2026*", "rol": "usuario"},
+    {"nombre": "Carlos Rodríguez", "correo": "carlos@saludplus.com", "clave": "Carlos2026*", "rol": "cuidador"},
 ]
 
 COMENTARIOS = [
@@ -187,6 +189,61 @@ def _datos_jorge(cursor, usuario_id, hoy):
         )
 
 
+def _datos_cuidador(cursor, maria_id, carlos_id, hoy, azar):
+    """Carlos cuida a María: vínculo activo, llamadas y alertas de ejemplo."""
+
+    cursor.execute(
+        "INSERT INTO vinculos_cuidado (adulto_id, cuidador_id, estado, vinculado_en) VALUES (%s, %s, 'activo', %s)",
+        (maria_id, carlos_id, a_utc(hoy - timedelta(days=15), time(18, 0))),
+    )
+
+    # María activa la lectura en voz alta de sus recordatorios
+    cursor.execute("UPDATE preferencias SET voz_activa = 1 WHERE usuario_id = %s", (maria_id,))
+
+    # Historial de videollamadas (RF-08): participantes, inicio, fin y duración
+    llamadas = [
+        (6, time(19, 5), maria_id, carlos_id, "finalizada", 8 * 60 + 25),
+        (4, time(10, 40), carlos_id, maria_id, "finalizada", 3 * 60 + 10),
+        (2, time(20, 15), maria_id, carlos_id, "perdida", None),
+        (1, time(18, 30), carlos_id, maria_id, "finalizada", 12 * 60 + 2),
+    ]
+
+    for n, (dias, hora, iniciador, receptor, estado, segundos) in enumerate(llamadas):
+
+        creada = a_utc(hoy - timedelta(days=dias), hora)
+
+        iniciada = creada + timedelta(seconds=9) if segundos else None
+
+        cursor.execute(
+            "INSERT INTO llamadas (sala, sala_url, sala_vence, iniciador_id, receptor_id, estado, "
+            "creada_en, iniciada_en, finalizada_en) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (f"saludplus-ejemplo{n}", f"https://ejemplo.daily.co/saludplus-ejemplo{n}",
+             creada + timedelta(hours=1), iniciador, receptor, estado, creada, iniciada,
+             iniciada + timedelta(seconds=segundos) if segundos else creada + timedelta(seconds=60)),
+        )
+
+    # Alertas de tomas omitidas que ya se enviaron (las tomas "no_tomado" de los últimos días)
+    cursor.execute(
+        "SELECT t.medicamento_id, t.fecha FROM tomas_medicamento t JOIN medicamentos m ON m.id = t.medicamento_id "
+        "WHERE m.usuario_id = %s AND t.estado = 'no_tomado' AND t.fecha >= %s",
+        (maria_id, hoy - timedelta(days=6)),
+    )
+
+    for fila in cursor.fetchall():
+
+        cursor.execute(
+            "SELECT hora FROM medicamentos WHERE id = %s", (fila["medicamento_id"],)
+        )
+
+        hora = (datetime.min + cursor.fetchone()["hora"]).time()
+
+        cursor.execute(
+            "INSERT INTO alertas_enviadas (medicamento_id, fecha, tipo, enviada_en) VALUES (%s, %s, 'toma_omitida', %s)",
+            (fila["medicamento_id"], fila["fecha"],
+             a_utc(fila["fecha"], (datetime.combine(fila["fecha"], hora) + timedelta(minutes=32)).time())),
+        )
+
+
 def cargar_datos_ejemplo(config, reiniciar=False):
     """Crea los usuarios de prueba. Devuelve un texto con el resultado."""
 
@@ -200,10 +257,13 @@ def cargar_datos_ejemplo(config, reiniciar=False):
             if reiniciar:
                 # ON DELETE CASCADE borra también todos sus registros
                 cursor.execute(
-                    "DELETE FROM usuarios WHERE correo IN (%s, %s, %s)", correos
+                    "DELETE FROM usuarios WHERE correo IN (" + ", ".join(["%s"] * len(correos)) + ")", correos
                 )
 
-            cursor.execute("SELECT COUNT(*) AS n FROM usuarios WHERE correo IN (%s, %s, %s)", correos)
+            cursor.execute(
+                "SELECT COUNT(*) AS n FROM usuarios WHERE correo IN (" + ", ".join(["%s"] * len(correos)) + ")",
+                correos,
+            )
 
             if cursor.fetchone()["n"] > 0 and not reiniciar:
                 conexion.rollback()
@@ -220,6 +280,8 @@ def cargar_datos_ejemplo(config, reiniciar=False):
             _datos_maria(cursor, ids["maria@saludplus.com"], hoy, azar)
 
             _datos_jorge(cursor, ids["jorge@saludplus.com"], hoy)
+
+            _datos_cuidador(cursor, ids["maria@saludplus.com"], ids["carlos@saludplus.com"], hoy, azar)
 
         conexion.commit()
 

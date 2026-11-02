@@ -49,6 +49,19 @@ def resumen():
         "resumen": {
             "usuarios": valor("SELECT COUNT(*) FROM usuarios"),
             "administradores": valor("SELECT COUNT(*) FROM usuarios WHERE rol = 'admin'"),
+            "cuidadores": valor("SELECT COUNT(*) FROM usuarios WHERE rol = 'cuidador'"),
+            "vinculos_activos": valor("SELECT COUNT(*) FROM vinculos_cuidado WHERE estado = 'activo'"),
+            "llamadas_7_dias": valor(
+                "SELECT COUNT(*) FROM llamadas WHERE creada_en >= UTC_TIMESTAMP() - INTERVAL 7 DAY"
+            ),
+            "minutos_llamada_7_dias": round(valor(
+                "SELECT COALESCE(SUM(TIMESTAMPDIFF(SECOND, iniciada_en, finalizada_en)), 0) FROM llamadas "
+                "WHERE estado = 'finalizada' AND creada_en >= UTC_TIMESTAMP() - INTERVAL 7 DAY"
+            ) / 60),
+            "alertas_omitidas_7_dias": valor(
+                "SELECT COUNT(*) FROM alertas_enviadas WHERE tipo = 'toma_omitida' "
+                "AND enviada_en >= UTC_TIMESTAMP() - INTERVAL 7 DAY"
+            ),
             "nuevos_7_dias": valor(
                 "SELECT COUNT(*) FROM usuarios WHERE creado_en >= UTC_TIMESTAMP() - INTERVAL 7 DAY"
             ),

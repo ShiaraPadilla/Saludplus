@@ -47,6 +47,22 @@ class Config:
     # si todavía no existen. Ver backend/datos_ejemplo.py
     CARGAR_DATOS_EJEMPLO = activado("CARGAR_DATOS_EJEMPLO")
 
+    # ---------- Requerimiento avanzado: videollamada, push y alertas ----------
+
+    # Daily.co (salas de video privadas). Sin clave → modo simulado para pruebas.
+    DAILY_API_KEY = os.getenv("DAILY_API_KEY", "").strip()
+
+    # Web Push: claves VAPID (genéralas con: python generar_claves_vapid.py)
+    VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY", "").strip()
+    VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY", "").strip()
+    VAPID_CORREO = os.getenv("VAPID_CORREO", "mailto:soporte@saludplus.app").strip()
+
+    # Clave que debe enviar cron-job.org para ejecutar /tareas/revisar-tomas
+    TAREAS_SECRETO = os.getenv("TAREAS_SECRETO", "").strip()
+
+    # Zona horaria de los usuarios (Colombia = -5, sin horario de verano)
+    ZONA_HORARIA_HORAS = int(os.getenv("ZONA_HORARIA_HORAS", "-5"))
+
     # ---------- Sesión ----------
     PERMANENT_SESSION_LIFETIME = timedelta(days=30)
     SESSION_COOKIE_HTTPONLY = True

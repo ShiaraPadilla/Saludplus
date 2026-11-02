@@ -19,6 +19,9 @@
 
 const SP_PAGINA = (function() {
 
+    // La pantalla de videollamada vive en /llamada/<id>
+    if (/^\/llamada\/\d+/.test(window.location.pathname)) return "llamada";
+
     const ultimo = window.location.pathname.split("/").pop() || "";
 
     const nombre = ultimo.replace(".html", "");
@@ -53,6 +56,9 @@ const SP_SIN_SERVIDOR = window.location.protocol === "file:";
 /* Cerrar sesión: borra la sesión, NO los registros de salud */
 
 async function cerrarSesionUsuario() {
+
+    // Este celular deja de recibir las notificaciones de este usuario
+    await desvincularCelularDelUsuario();
 
     try {
         await api("POST", "/auth/logout");
@@ -494,8 +500,22 @@ function pantallaAnteriorLogica() {
             return "index";
 
         default:
-            return "dashboard";
+            return paginaDeInicio();
     }
+}
+
+
+/* Pantalla principal según el tipo de cuenta */
+
+function paginaDeInicio() {
+
+    return localStorage.getItem("rolUsuario") === "cuidador" ? "panel-cuidador" : "dashboard";
+}
+
+
+function esCuidador() {
+
+    return localStorage.getItem("rolUsuario") === "cuidador";
 }
 
 
@@ -522,7 +542,8 @@ const SP_SECCION = {
     historial: "historial",
     ajustes: "ajustes",
     informes: "ajustes",
-    admin: "ajustes"
+    admin: "ajustes",
+    "panel-cuidador": "dashboard"
 };
 
 
@@ -548,13 +569,20 @@ function prepararNavegacion() {
 
             if (!destino) return;
 
+            // El cuidador no tiene historial propio y su inicio es su panel
+            boton.hidden = esCuidador() && destino === "historial";
+
+            const marcado = destino;
+
+            if (destino === "dashboard") destino = paginaDeInicio();
+
             boton.type = "button";
 
             boton.onclick = function() {
                 irAPagina(destino);
             };
 
-            const activo = SP_SECCION[SP_PAGINA] === destino;
+            const activo = SP_SECCION[SP_PAGINA] === marcado;
 
             boton.classList.toggle("activo", activo);
 
@@ -1217,8 +1245,29 @@ function abrirPanelRecordatorios(incluirProximas) {
         ],
         alCerrar: function() {
             SP_panelRecordatoriosProximas = null;
+            if ("speechSynthesis" in window) window.speechSynthesis.cancel();
         }
     });
+
+    // RF-07: al abrir un recordatorio se lee en voz alta (si está activado)
+    if (obtenerPreferenciasRecordatorios().vozActiva) {
+        leerRecordatoriosEnVoz();
+    }
+}
+
+
+function leerRecordatoriosEnVoz() {
+
+    const pendientes = obtenerRecordatoriosDeHoy().filter(function(i) { return i.estado === "pendiente"; });
+
+    const texto = pendientes.length === 0
+        ? "No tienes recordatorios pendientes para hoy."
+        : "Tienes " + pendientes.length + (pendientes.length === 1 ? " recordatorio" : " recordatorios") +
+          " para hoy. " + pendientes.map(function(i) {
+              return (i.tipo === "medicamento" ? "Tomar " : "") + i.titulo + ", a las " + i.hora;
+          }).join(". ") + ".";
+
+    leerEnVoz(texto);
 }
 
 
@@ -1234,6 +1283,11 @@ function htmlPanelRecordatorios(incluirProximas) {
     /* Resumen tipo lista */
 
     const pendientes = items.filter(function(i) { return i.estado === "pendiente"; });
+
+    if ("speechSynthesis" in window) {
+        html += '<button type="button" class="boton-escuchar" onclick="leerRecordatoriosEnVoz()">' +
+            "🔊 Escuchar recordatorios</button>";
+    }
 
     html += '<p class="panel-resumen">' + (
         pendientes.length === 0
@@ -1386,7 +1440,8 @@ document.addEventListener("saludplus:datos", function() {
 const SP_PREFERENCIAS_RECORDATORIOS = {
     activos: true,        // avisos dentro de la app
     sistema: false,       // notificaciones del celular
-    minutosCita: 60       // avisar citas X minutos antes
+    minutosCita: 60,      // avisar citas X minutos antes
+    vozActiva: false      // leer recordatorios en voz alta
 };
 
 
@@ -1993,10 +2048,431 @@ document.addEventListener("DOMContentLoaded", function() {
 
     mostrarAvisoSinServidor();
 
+    registrarServiceWorker();
+
     if (SP_PAGINAS_PUBLICAS.indexOf(SP_PAGINA) === -1) {
 
-        sincronizarConServidor().then(revisarRecordatoriosProgramados);
+        sincronizarConServidor().then(function() {
+            revisarRecordatoriosProgramados();
+            prepararNavegacion();
+            sincronizarSuscripcionPush();
+        });
 
         setInterval(revisarRecordatoriosProgramados, 30000);
+
+        // Llamadas entrantes mientras la app está abierta
+        if (SP_PAGINA !== "llamada" && SP_PAGINA !== "admin") {
+            setTimeout(revisarLlamadaEntrante, 2500);
+            setInterval(revisarLlamadaEntrante, 10000);
+        }
     }
 });
+
+
+
+/* =========================================
+   7. RECORDATORIOS EN VOZ ALTA (RF-07)
+   Web Speech API (speechSynthesis), en español.
+========================================= */
+
+/* "50 mg" → "50 miligramos", "8:30 a. m." → "8 y 30 de la mañana" */
+
+function textoParaVoz(texto) {
+
+    return String(texto)
+        .replace(/(\d+(?:[.,]\d+)?)\s*mg\b/gi, "$1 miligramos")
+        .replace(/(\d+(?:[.,]\d+)?)\s*ml\b/gi, "$1 mililitros")
+        .replace(/(\d+)\s*UI\b/g, "$1 unidades")
+        .replace(/(\d{1,2}):(\d{2})\s*([ap])\.\s*m\./gi, function(_, h, m, p) {
+
+            h = parseInt(h, 10);
+            m = parseInt(m, 10);
+
+            let franja = "de la mañana";
+
+            if (p.toLowerCase() === "p") {
+                franja = h === 12 ? "del mediodía" : (h <= 6 ? "de la tarde" : "de la noche");
+            }
+
+            return h + (m ? " y " + m : "") + " " + franja;
+        })
+        .replace(/[—•·|]/g, ", ")
+        .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+}
+
+
+function leerEnVoz(texto) {
+
+    if (!("speechSynthesis" in window) || !texto) return false;
+
+    const sintetizador = window.speechSynthesis;
+
+    sintetizador.cancel();
+
+    const voz = new SpeechSynthesisUtterance(textoParaVoz(texto));
+
+    voz.lang = "es-CO";
+
+    voz.rate = 0.9;          // un poco más lento para adultos mayores
+
+    const espanol = sintetizador.getVoices().find(function(v) {
+        return v.lang && v.lang.toLowerCase().indexOf("es") === 0;
+    });
+
+    if (espanol) voz.voice = espanol;
+
+    sintetizador.speak(voz);
+
+    return true;
+}
+
+
+/* =========================================
+   8. SERVICE WORKER Y NOTIFICACIONES PUSH (RF-04)
+========================================= */
+
+function registrarServiceWorker() {
+
+    if (!("serviceWorker" in navigator) || SP_SIN_SERVIDOR) return;
+
+    // updateViaCache "none": el celular siempre busca la versión nueva del service worker
+    navigator.serviceWorker.register("/sw.js", { scope: "/", updateViaCache: "none" }).catch(function(error) {
+        console.warn("Service worker no registrado:", error);
+    });
+}
+
+
+function pushSoportado() {
+
+    return "serviceWorker" in navigator && "PushManager" in window && "Notification" in window && !SP_SIN_SERVIDOR;
+}
+
+
+function base64UrlABytes(base64) {
+
+    const relleno = "=".repeat((4 - (base64.length % 4)) % 4);
+
+    const binario = atob((base64 + relleno).replace(/-/g, "+").replace(/_/g, "/"));
+
+    return Uint8Array.from(binario, function(c) { return c.charCodeAt(0); });
+}
+
+
+/* ¿La suscripción se hizo con la clave VAPID actual del servidor? */
+
+function mismaClave(suscripcion, claveBase64) {
+
+    const actual = suscripcion.options && suscripcion.options.applicationServerKey;
+
+    if (!actual) return true;      // el navegador no la informa: se asume igual
+
+    const a = new Uint8Array(actual), b = base64UrlABytes(claveBase64);
+
+    return a.length === b.length && a.every(function(v, i) { return v === b[i]; });
+}
+
+
+/* Devuelve una suscripción válida para la clave actual (la crea o la renueva) */
+
+async function obtenerSuscripcionVigente(registro, claveBase64) {
+
+    let suscripcion = await registro.pushManager.getSubscription();
+
+    // Si cambiaron las claves VAPID, la suscripción vieja ya no recibe nada
+    if (suscripcion && !mismaClave(suscripcion, claveBase64)) {
+        await suscripcion.unsubscribe();
+        suscripcion = null;
+    }
+
+    if (!suscripcion) {
+        suscripcion = await registro.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: base64UrlABytes(claveBase64)
+        });
+    }
+
+    return suscripcion;
+}
+
+
+/* Pide permiso y suscribe este celular. Devuelve {ok, mensaje}. */
+
+async function activarNotificacionesPush() {
+
+    if (!pushSoportado()) {
+        return {
+            ok: false,
+            mensaje: "Este navegador no permite notificaciones push. En Android usa Chrome; en iPhone, " +
+                     "primero instala la app (Compartir → Agregar a inicio) y ábrela desde el ícono."
+        };
+    }
+
+    // El permiso se pide PRIMERO, justo después del toque del usuario: si antes se
+    // espera una respuesta del servidor, algunos navegadores ya no muestran el aviso.
+    const permiso = await Notification.requestPermission();
+
+    if (permiso !== "granted") {
+        return {
+            ok: false,
+            mensaje: "No diste permiso. En Android: toca el candado junto a la dirección → " +
+                     "Permisos → Notificaciones → Permitir."
+        };
+    }
+
+    const clave = await api("GET", "/push/clave");
+
+    if (!clave.disponible) {
+        return { ok: false, mensaje: "Las notificaciones push no están configuradas en el servidor." };
+    }
+
+    const registro = await navigator.serviceWorker.ready;
+
+    const suscripcion = await obtenerSuscripcionVigente(registro, clave.clave);
+
+    await api("POST", "/push/suscribir", suscripcion.toJSON());
+
+    return { ok: true, mensaje: "🔔 Notificaciones activadas en este celular." };
+}
+
+
+/* Al abrir la app: si ya hay permiso, vuelve a registrar la suscripción.
+   Android renueva la dirección de entrega de vez en cuando, y si otra
+   persona inició sesión en este celular, la suscripción pasa a ella. */
+
+async function sincronizarSuscripcionPush() {
+
+    try {
+
+        if (!pushSoportado() || Notification.permission !== "granted") return;
+
+        const clave = await api("GET", "/push/clave");
+
+        if (!clave.disponible) return;
+
+        const registro = await navigator.serviceWorker.ready;
+
+        const suscripcion = await obtenerSuscripcionVigente(registro, clave.clave);
+
+        await api("POST", "/push/suscribir", suscripcion.toJSON());
+
+    } catch (error) {
+        // Silencioso: se intentará de nuevo la próxima vez
+    }
+}
+
+
+/* Antes de cerrar sesión: el servidor deja de enviar a este celular */
+
+async function desvincularCelularDelUsuario() {
+
+    try {
+
+        if (!pushSoportado()) return;
+
+        const registro = await navigator.serviceWorker.getRegistration();
+
+        const suscripcion = registro && await registro.pushManager.getSubscription();
+
+        if (suscripcion) {
+            await api("POST", "/push/desuscribir", { endpoint: suscripcion.endpoint });
+        }
+
+    } catch (error) {}
+}
+
+
+async function desactivarNotificacionesPush() {
+
+    if (!pushSoportado()) return;
+
+    const registro = await navigator.serviceWorker.ready;
+
+    const suscripcion = await registro.pushManager.getSubscription();
+
+    if (suscripcion) {
+        try {
+            await api("POST", "/push/desuscribir", { endpoint: suscripcion.endpoint });
+        } catch (error) {}
+        await suscripcion.unsubscribe();
+    }
+}
+
+
+async function pushActivoEnEsteCelular() {
+
+    if (!pushSoportado() || Notification.permission !== "granted") return false;
+
+    const registro = await navigator.serviceWorker.getRegistration();
+
+    return !!(registro && await registro.pushManager.getSubscription());
+}
+
+
+/* =========================================
+   9. VIDEOLLAMADAS (RF-03, RF-04, RF-05)
+========================================= */
+
+/* Inicia una llamada y abre la pantalla de video.
+   opciones: { receptor_id, cita_id } */
+
+async function iniciarLlamada(opciones) {
+
+    opciones = opciones || {};
+
+    try {
+
+        const respuesta = await api("POST", "/llamadas", opciones);
+
+        window.location.href = "/llamada/" + respuesta.llamada.id;
+
+    } catch (error) {
+
+        if (error.estado === 409) {
+            mostrarAyudaVincular();
+            return;
+        }
+
+        if (error.campo === "receptor_id" && error.estado === 400) {
+            elegirAQuienLlamar(opciones);
+            return;
+        }
+
+        mostrarAviso("⚠️ " + error.message);
+    }
+}
+
+
+function llamarAMiFamiliar() {
+
+    iniciarLlamada({});
+}
+
+
+async function elegirAQuienLlamar(opciones) {
+
+    const datos = await api("GET", "/vinculos");
+
+    const personas = datos.cuidadores || datos.adultos || [];
+
+    abrirHoja({
+        id: "elegir-llamada",
+        titulo: "📹 ¿A quién quieres llamar?",
+        html: '<div class="lista-contactos">' + personas.map(function(p) {
+            return '<button type="button" class="boton-contacto" data-id="' + p.id + '">' +
+                '<span class="admin-avatar">' + escaparHTML(p.nombre.charAt(0)) + "</span>" +
+                "<strong>" + escaparHTML(p.nombre) + "</strong><span>📹</span></button>";
+        }).join("") + "</div>"
+    });
+
+    document.querySelectorAll(".boton-contacto").forEach(function(boton) {
+        boton.onclick = function() {
+            cerrarHoja();
+            iniciarLlamada(Object.assign({}, opciones, { receptor_id: Number(boton.dataset.id) }));
+        };
+    });
+}
+
+
+function mostrarAyudaVincular() {
+
+    abrirHoja({
+        id: "ayuda-vincular",
+        titulo: "👨‍👩‍👧 Vincula a tu familiar",
+        html:
+            '<p class="hoja-texto">Para hacer videollamadas, primero vincula a tu familiar o cuidador:</p>' +
+            '<ol class="hoja-pasos">' +
+                "<li>Ve a <strong>Ajustes → Mi cuidador</strong> y toca <strong>Generar código</strong>.</li>" +
+                "<li>Dale el código de 6 números a tu familiar.</li>" +
+                "<li>Tu familiar crea una cuenta de <strong>cuidador</strong> en Salud+ y escribe el código.</li>" +
+            "</ol>",
+        acciones: [
+            { texto: "Ir a Ajustes", clase: "panel-boton-principal", accion: function() { irAPagina("ajustes"); } }
+        ]
+    });
+}
+
+
+/* ---------- Llamada entrante (con la app abierta) ---------- */
+
+let SP_llamadaAnunciada = null;
+
+async function revisarLlamadaEntrante() {
+
+    if (document.hidden || SP_SIN_SERVIDOR) return;
+
+    try {
+
+        const respuesta = await api("GET", "/llamadas/entrante");
+
+        const llamada = respuesta.llamada;
+
+        if (llamada && llamada.id !== SP_llamadaAnunciada) {
+
+            SP_llamadaAnunciada = llamada.id;
+
+            mostrarLlamadaEntrante(llamada);
+
+        } else if (!llamada) {
+
+            cerrarLlamadaEntrante();
+        }
+
+    } catch (error) {}
+}
+
+
+function mostrarLlamadaEntrante(llamada) {
+
+    cerrarLlamadaEntrante();
+
+    const capa = document.createElement("div");
+
+    capa.id = "llamadaEntrante";
+
+    capa.className = "llamada-entrante";
+
+    capa.setAttribute("role", "alertdialog");
+
+    capa.setAttribute("aria-label", "Videollamada entrante de " + llamada.con);
+
+    capa.innerHTML =
+        '<div class="llamada-entrante-avatar">' + escaparHTML(llamada.con.charAt(0)) + "</div>" +
+        '<p class="llamada-entrante-tipo">📹 Videollamada' + (llamada.cita ? " · cita con " + escaparHTML(llamada.cita.medico) : "") + "</p>" +
+        '<h2 class="llamada-entrante-nombre">' + escaparHTML(llamada.con) + "</h2>" +
+        '<p class="llamada-entrante-estado">te está llamando…</p>' +
+        '<div class="llamada-entrante-botones">' +
+            '<button type="button" class="boton-llamada boton-rechazar" aria-label="Rechazar llamada">' +
+                '<span aria-hidden="true">📞</span><small>Rechazar</small></button>' +
+            '<button type="button" class="boton-llamada boton-contestar" aria-label="Contestar llamada">' +
+                '<span aria-hidden="true">📞</span><small>Contestar</small></button>' +
+        "</div>";
+
+    capa.querySelector(".boton-contestar").onclick = function() {
+        window.location.href = "/llamada/" + llamada.id;
+    };
+
+    capa.querySelector(".boton-rechazar").onclick = async function() {
+        cerrarLlamadaEntrante();
+        try { await api("POST", "/llamadas/" + llamada.id + "/rechazar"); } catch (error) {}
+    };
+
+    document.body.appendChild(capa);
+
+    if (navigator.vibrate) navigator.vibrate([400, 200, 400, 200, 400]);
+
+    if (obtenerPreferenciasRecordatorios().vozActiva) {
+        leerEnVoz(llamada.con + " te está llamando.");
+    }
+
+    capa.querySelector(".boton-contestar").focus();
+}
+
+
+function cerrarLlamadaEntrante() {
+
+    const capa = document.getElementById("llamadaEntrante");
+
+    if (capa) capa.remove();
+}

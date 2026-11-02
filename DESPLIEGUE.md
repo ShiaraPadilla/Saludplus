@@ -107,6 +107,7 @@ Abre una **ventana de incógnito** y comprueba:
 - [ ] Entras con `maria@saludplus.com` / `Maria2026*` y ves medicamentos, citas e historial.
 - [ ] Agregas una cita, recargas la página y la cita sigue ahí: se guardó en MySQL.
 - [ ] Entras con `admin@saludplus.com` / `Admin2026*` → Ajustes → **Panel de administración**.
+- [ ] Entras con `carlos@saludplus.com` / `Carlos2026*` y ves el **panel del cuidador** con María.
 - [ ] Copias la dirección final en el `README.md` (donde dice `[COMPLETAR]`).
 
 ### 📱 Instalarla en el celular
@@ -131,6 +132,69 @@ La guía rechaza los servicios de bases de datos "listas para usar". Aiven solo 
 El motor es **MySQL**, uno de los permitidos.
 
 > 💡 **Recomendación:** confírmenlo con el docente antes de entregar. Si no lo acepta, la app funciona con cualquier MySQL accesible por internet: solo se cambian las variables `DB_*` en Render, sin tocar el código.
+
+---
+
+## Paso 5 · Activar videollamadas, notificaciones y alertas (requerimiento avanzado)
+
+La app funciona sin este paso: las llamadas quedan en **modo simulado** y no llegan notificaciones. Para la demostración con dos celulares sí hay que hacerlo.
+
+### 5.1 · Daily.co (videollamadas reales)
+1. Crea una cuenta gratis en **https://dashboard.daily.co/signup**. El plan gratuito trae 10,000 minutos al mes y no pide tarjeta.
+2. En el panel ve a **Developers** y copia la **API key**.
+3. En Render → tu servicio → **Environment**, crea `DAILY_API_KEY` y pega la clave.
+4. **Guarda los cambios.** Render reinicia la app y desde ese momento las salas son reales.
+
+### 5.2 · Claves VAPID (notificaciones push)
+1. En tu computador, dentro de la carpeta del proyecto, ejecuta:
+   ```bash
+   python generar_claves_vapid.py
+   ```
+2. Copia las dos líneas que imprime (`VAPID_PUBLIC_KEY=...` y `VAPID_PRIVATE_KEY=...`) en **Environment** de Render.
+3. ⚠️ Genéralas **una sola vez**. Si las cambias, cada celular debe volver a activar las notificaciones.
+
+> 📱 **Notificaciones en el celular:**
+> - **Android con Chrome:** funcionan directamente. Lo ideal es **instalar la app** (Chrome → menú ⋮ → *Instalar app* o *Agregar a pantalla principal*): así la notificación muestra el logo de Salud+ y la llamada abre la app a pantalla completa.
+> - **iPhone:** primero hay que **instalar la app** (Safari → Compartir → *Agregar a pantalla de inicio*) y abrirla desde ese ícono. Requiere iOS 16.4 o superior.
+>
+> En los dos casos, cada persona toca **Activar** en el aviso de notificaciones (panel del cuidador o Ajustes → Recordatorios).
+
+#### Si en Android no llegan las notificaciones
+Revisen en este orden:
+
+| Revisar | Dónde |
+|---|---|
+| 1. Permiso del sitio | Chrome → candado junto a la dirección → **Permisos → Notificaciones → Permitir** |
+| 2. Notificaciones de Chrome activadas | Ajustes del teléfono → **Apps → Chrome → Notificaciones** → activadas (y la categoría del sitio *saludplus-hdr5.onrender.com*) |
+| 3. Ahorro de batería | Ajustes → **Apps → Chrome (o Salud+) → Batería → Sin restricciones**. En Xiaomi, Huawei y Samsung este paso es clave: sin él, el sistema puede retener las notificaciones. |
+| 4. No molestar | Que el modo *No molestar* esté apagado |
+| 5. Volver a activar | En la app, desactiva y vuelve a activar las notificaciones (Ajustes → Recordatorios, o el botón **Activar** del panel del cuidador) |
+| 6. Probar | Ajustes → Recordatorios → botón **🔔 Probar**: la notificación debe llegar en segundos |
+
+La app ya hace lo suyo para Android:
+- envía las llamadas, los recordatorios y las alertas con **urgencia alta** (`Urgency: high`), que despierta el teléfono aunque esté en ahorro de batería;
+- vuelve a registrar el celular cada vez que se abre;
+- si cambian las claves VAPID, crea una suscripción nueva sola.
+
+### 5.3 · Tarea de alertas cada 5 minutos (cron-job.org)
+Esta tarea **reemplaza** al "ping" de cada 10 minutos que configuraron antes: además de mantener despierta la app, revisa las tomas olvidadas.
+
+1. En Render → **Environment**, copia el valor de `TAREAS_SECRETO`. Render lo generó solo.
+2. En **https://cron-job.org**, edita la tarea que ya tenías (o crea una nueva):
+   - **URL:** `https://saludplus-hdr5.onrender.com/tareas/revisar-tomas`
+   - **Horario:** cada **5 minutos**
+   - En **Advanced**:
+     - **Request method:** `POST`
+     - **Headers:** agrega uno con nombre `X-Tarea-Secreta` y como valor el secreto que copiaste
+3. Guarda y revisa el historial: debe responder **200**. Si responde **401**, el secreto no coincide.
+
+### 5.4 · Probar con dos celulares (para el video)
+1. **Celular 1:** entra como `maria@saludplus.com` / `Maria2026*`.
+2. **Celular 2:** entra como `carlos@saludplus.com` / `Carlos2026*` y toca **Activar** notificaciones.
+3. En el celular de María toca **📹 Llamar a mi familiar**. A Carlos le llega la notificación: la toca y entra a la llamada.
+4. Al colgar, la llamada aparece en **Ajustes → Historial de llamadas** con su duración.
+5. **Para probar la alerta de toma omitida:** con María, abre un medicamento que **ya exista** y que no haya marcado hoy (por ejemplo, Metformina) → **Editar**, cambia la hora a **hace 35 minutos** y guarda. En menos de 5 minutos, Carlos recibe la alerta.
+   > Usen un medicamento existente: la app no alerta por medicamentos creados **después** de su hora, porque esa toma no existía cuando debía tomarse.
 
 ---
 

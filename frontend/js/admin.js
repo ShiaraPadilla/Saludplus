@@ -87,6 +87,16 @@ function pintarResumen(r) {
     }).join("");
 
 
+    /* Cuidado familiar */
+
+    document.getElementById("adminFamilia").innerHTML =
+        chip("👨‍👩‍👧 Cuidadores", r.cuidadores, "") +
+        chip("🤝 Vínculos activos", r.vinculos_activos, "chip-tomado") +
+        chip("📹 Llamadas", r.llamadas_7_dias, "") +
+        chip("⏱️ Minutos en llamada", r.minutos_llamada_7_dias, "") +
+        chip("⚠️ Tomas omitidas alertadas", r.alertas_omitidas_7_dias, "chip-no-tomado");
+
+
     /* Bienestar */
 
     const b = r.registros_bienestar_7_dias;
@@ -136,7 +146,7 @@ function pintarUsuarios(usuarios) {
                         "<span>" + escaparHTML(u.correo) + "</span>" +
                     "</div>" +
                     '<span class="admin-rol admin-rol-' + u.rol + '">' +
-                        (u.rol === "admin" ? "Admin" : "Usuario") +
+                        ({ admin: "Admin", cuidador: "Cuidador" }[u.rol] || "Usuario") +
                     "</span>" +
                 "</div>" +
                 '<div class="admin-usuario-datos">' +

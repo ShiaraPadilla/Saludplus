@@ -265,18 +265,19 @@ def guardar_sueno():
 def leer_preferencias(usuario_id):
 
     fila = consultar(
-        "SELECT avisos_app, notificaciones, minutos_cita FROM preferencias WHERE usuario_id = %s",
+        "SELECT avisos_app, notificaciones, minutos_cita, voz_activa FROM preferencias WHERE usuario_id = %s",
         (usuario_id,),
         uno=True,
     )
 
     if not fila:
-        return {"activos": True, "sistema": False, "minutosCita": 60}
+        return {"activos": True, "sistema": False, "minutosCita": 60, "vozActiva": False}
 
     return {
         "activos": bool(fila["avisos_app"]),
         "sistema": bool(fila["notificaciones"]),
         "minutosCita": int(fila["minutos_cita"]),
+        "vozActiva": bool(fila["voz_activa"]),
     }
 
 
@@ -305,12 +306,14 @@ def guardar_preferencias():
 
     sistema = bool(datos.get("sistema", False))
 
+    voz = bool(datos.get("vozActiva", False))
+
     ejecutar(
-        "INSERT INTO preferencias (usuario_id, avisos_app, notificaciones, minutos_cita) "
-        "VALUES (%s, %s, %s, %s) ON DUPLICATE KEY UPDATE "
+        "INSERT INTO preferencias (usuario_id, avisos_app, notificaciones, minutos_cita, voz_activa) "
+        "VALUES (%s, %s, %s, %s, %s) ON DUPLICATE KEY UPDATE "
         "avisos_app = VALUES(avisos_app), notificaciones = VALUES(notificaciones), "
-        "minutos_cita = VALUES(minutos_cita)",
-        (g.usuario["id"], activos, sistema, minutos),
+        "minutos_cita = VALUES(minutos_cita), voz_activa = VALUES(voz_activa)",
+        (g.usuario["id"], activos, sistema, minutos, voz),
     )
 
     return ok({"preferencias": leer_preferencias(g.usuario["id"])})

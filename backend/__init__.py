@@ -65,6 +65,10 @@ def crear_app():
     from .medicamentos import bp as medicamentos_bp
     from .paginas import bp as paginas_bp
     from .sincronizar import bp as sincronizar_bp
+    from .llamadas import bp as llamadas_bp
+    from .push import bp as push_bp
+    from .tareas import bp as tareas_bp
+    from .vinculos import bp as vinculos_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(medicamentos_bp)
@@ -72,6 +76,10 @@ def crear_app():
     app.register_blueprint(bienestar_bp)
     app.register_blueprint(sincronizar_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(vinculos_bp)
+    app.register_blueprint(llamadas_bp)
+    app.register_blueprint(push_bp)
+    app.register_blueprint(tareas_bp)
     app.register_blueprint(paginas_bp)      # siempre de último (atrapa todo lo demás)
 
 
@@ -94,7 +102,7 @@ def crear_app():
     # ---------- Errores en formato JSON para la API ----------
 
     def es_api():
-        return request.path.startswith("/api/")
+        return request.path.startswith(("/api/", "/tareas/"))
 
     @app.errorhandler(pymysql.err.OperationalError)
     def error_bd(e):

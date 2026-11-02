@@ -136,8 +136,9 @@ if (formularioLogin) {
                 localStorage.setItem("nombreUsuario", respuesta.usuario.nombre);
                 localStorage.setItem("correoUsuario", respuesta.usuario.correo);
                 localStorage.setItem("ultimoCorreo", respuesta.usuario.correo);
+                localStorage.setItem("rolUsuario", respuesta.usuario.rol || "usuario");
 
-                window.location.href = "dashboard.html";
+                window.location.href = paginaDeInicio() + ".html";
 
             } catch (error) {
 
@@ -222,7 +223,10 @@ if (formularioRegistro) {
 
             try {
 
+                const rolElegido = document.querySelector('input[name="rolCuenta"]:checked');
+
                 await api("POST", "/auth/registro", {
+                    rol: rolElegido ? rolElegido.value : "usuario",
                     nombre: nombre,
                     correo: correo,
                     contrasena: contrasena,
@@ -1157,6 +1161,14 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Actualizar cada minuto (próxima toma, atrasos)
         setInterval(cargarDashboard, 60000);
+
+        // Se abrió desde la notificación de un recordatorio: mostrarlo (y leerlo en voz alta)
+        if (new URLSearchParams(window.location.search).has("recordatorio")) {
+
+            history.replaceState(null, "", "dashboard.html");
+
+            setTimeout(function() { abrirPanelRecordatorios(false); }, 1200);
+        }
     }
 
     if (document.getElementById("listaMedicamentos")) {

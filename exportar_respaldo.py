@@ -26,6 +26,7 @@ ARCHIVO = Path(__file__).resolve().parent / "database" / "saludplus_respaldo.sql
 TABLAS = [
     "usuarios", "preferencias", "medicamentos", "tomas_medicamento", "citas",
     "estados_emocionales", "actividad_fisica", "agua", "sueno",
+    "vinculos_cuidado", "llamadas", "suscripciones_push", "alertas_enviadas",
 ]
 
 

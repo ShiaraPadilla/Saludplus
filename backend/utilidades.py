@@ -2,9 +2,9 @@
 Funciones de apoyo: respuestas JSON y conversión de tipos de MySQL.
 """
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 
-from flask import jsonify, request
+from flask import current_app, jsonify, request
 
 
 def ok(datos=None, codigo=200):
@@ -83,3 +83,41 @@ def serializar(fila):
             resultado[clave] = valor
 
     return resultado
+
+
+# ---------- Hora local de los usuarios (Colombia, UTC-5) ----------
+
+def _desfase():
+    try:
+        horas = current_app.config["ZONA_HORARIA_HORAS"]
+    except RuntimeError:
+        horas = -5
+    return timedelta(hours=horas)
+
+
+def ahora_utc():
+    """Fecha y hora UTC sin zona (como se guardan en MySQL)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+def ahora_local():
+    """Fecha y hora actual en la zona de los usuarios, sin zona."""
+    return ahora_utc() + _desfase()
+
+
+def utc_a_local(valor):
+    return valor + _desfase() if valor else None
+
+
+def local_a_utc(valor):
+    return valor - _desfase() if valor else None
+
+
+def hora_12(valor):
+    """TIME/timedelta o 'HH:MM' → '8:00 a. m.'"""
+
+    texto = hora_a_texto(valor) if not isinstance(valor, str) else valor
+    horas, minutos = (int(x) for x in texto[:5].split(":"))
+    periodo = "p. m." if horas >= 12 else "a. m."
+    horas = horas % 12 or 12
+    return f"{horas}:{minutos:02d} {periodo}"

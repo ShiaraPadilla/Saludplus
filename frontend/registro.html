@@ -15,7 +15,7 @@
     <meta name="apple-mobile-web-app-title" content="Salud+">
     <link rel="manifest" href="manifest.json">
     <link rel="icon" href="img/icono.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="img/icono.svg">
+    <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 
     <link rel="stylesheet" href="css/estilos.css">
 </head>
@@ -50,6 +50,32 @@
 
         <!-- FORMULARIO -->
         <form id="formRegistro" class="form-registro">
+
+
+            <!-- TIPO DE CUENTA -->
+            <fieldset class="tipo-cuenta">
+
+                <legend>¿Cómo vas a usar Salud+?</legend>
+
+                <label class="opcion-tipo-cuenta">
+                    <input type="radio" name="rolCuenta" value="usuario" checked>
+                    <span class="opcion-tipo-icono" aria-hidden="true">🧓</span>
+                    <span class="opcion-tipo-texto">
+                        <strong>Para cuidar mi salud</strong>
+                        <small>Medicamentos, citas y bienestar</small>
+                    </span>
+                </label>
+
+                <label class="opcion-tipo-cuenta">
+                    <input type="radio" name="rolCuenta" value="cuidador">
+                    <span class="opcion-tipo-icono" aria-hidden="true">👨‍👩‍👧</span>
+                    <span class="opcion-tipo-texto">
+                        <strong>Soy cuidador o familiar</strong>
+                        <small>Acompaño a un adulto mayor</small>
+                    </span>
+                </label>
+
+            </fieldset>
 
 
             <!-- NOMBRE -->

@@ -94,6 +94,29 @@ def aplicar_migraciones(cursor):
 
     if cursor.fetchone()["n"] == 0:
         cursor.execute(
-            "ALTER TABLE usuarios ADD COLUMN rol ENUM('usuario', 'admin') "
+            "ALTER TABLE usuarios ADD COLUMN rol ENUM('usuario', 'cuidador', 'admin') "
             "NOT NULL DEFAULT 'usuario' AFTER clave_hash"
+        )
+
+    # Rol cuidador (requerimiento avanzado)
+    cursor.execute(
+        "SELECT column_type AS tipo FROM information_schema.columns "
+        "WHERE table_schema = DATABASE() AND table_name = 'usuarios' AND column_name = 'rol'"
+    )
+
+    if "cuidador" not in cursor.fetchone()["tipo"]:
+        cursor.execute(
+            "ALTER TABLE usuarios MODIFY rol ENUM('usuario', 'cuidador', 'admin') "
+            "NOT NULL DEFAULT 'usuario'"
+        )
+
+    # Recordatorios por voz
+    cursor.execute(
+        "SELECT COUNT(*) AS n FROM information_schema.columns "
+        "WHERE table_schema = DATABASE() AND table_name = 'preferencias' AND column_name = 'voz_activa'"
+    )
+
+    if cursor.fetchone()["n"] == 0:
+        cursor.execute(
+            "ALTER TABLE preferencias ADD COLUMN voz_activa TINYINT(1) NOT NULL DEFAULT 0 AFTER minutos_cita"
         )

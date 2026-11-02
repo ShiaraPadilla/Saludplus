@@ -112,8 +112,10 @@ def registro():
     correo = texto(datos, "correo").lower()
     contrasena = datos.get("contrasena") or ""
     confirmar = datos.get("confirmar") or ""
+    rol = texto(datos, "rol") or "usuario"
 
     try:
+        requerir(rol in ("usuario", "cuidador"), "rol", "Elige el tipo de cuenta.")
         validar_nombre(nombre)
         validar_correo(correo)
         validar_contrasena(contrasena)
@@ -128,8 +130,8 @@ def registro():
 
     try:
         usuario_id, _ = ejecutar(
-            "INSERT INTO usuarios (nombre, correo, clave_hash) VALUES (%s, %s, %s)",
-            (nombre, correo, generate_password_hash(contrasena)),
+            "INSERT INTO usuarios (nombre, correo, clave_hash, rol) VALUES (%s, %s, %s, %s)",
+            (nombre, correo, generate_password_hash(contrasena), rol),
         )
     except pymysql.err.IntegrityError:
         # Dos registros al mismo tiempo con el mismo correo
