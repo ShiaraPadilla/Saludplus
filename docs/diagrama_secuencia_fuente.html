@@ -1,0 +1,66 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+body{margin:0;background:#fff;font-family:Arial,Helvetica,sans-serif}
+#lienzo{width:1700px;padding:30px 36px 26px;background:#fff}
+h1{margin:0;font-size:30px;color:#0b7a3a} .sub{margin:4px 0 14px;color:#555;font-size:15px}
+text{font-family:Arial,Helvetica,sans-serif}
+</style></head><body><div id="lienzo">
+<h1>Salud+ · Diagrama de secuencia: videollamada familiar</h1>
+<div class="sub">RF-03 sala privada · RF-04 llamada entrante con notificación push · RF-08 registro de la llamada. Flujo implementado en <b>backend/llamadas.py</b> y <b>frontend/js/llamada.js</b>.</div>
+<svg id="s" xmlns="http://www.w3.org/2000/svg"></svg>
+</div><script>
+const P=[["adulto","Adulto mayor","app en el celular","#08a34b"],["flask","Servidor Flask","Render","#06783a"],["mysql","MySQL","Aiven","#1d6fb8"],["daily","Daily.co","API de video","#6b4bb8"],["push","Servicio push","Web Push / VAPID","#b8641d"],["cuidador","Cuidador","app en el celular","#08a34b"]];
+const X={},ancho=1628,gap=ancho/P.length; P.forEach((p,i)=>X[p[0]]=gap*i+gap/2);
+// [desde, hacia, texto, tipo] tipo: m=mensaje, r=respuesta, n=nota(sobre desde..hacia), s=separador
+const M=[
+ ["s","","1. Iniciar la llamada"],
+ ["adulto","flask","POST /api/llamadas  { receptor_id }","m"],
+ ["flask","mysql","¿Vínculo activo?  puede_ver(cuidador, adulto)","m"],
+ ["mysql","flask","Sí (si no: 403)","r"],
+ ["flask","daily","POST /rooms  privada, expira en 60 min","m"],
+ ["daily","flask","nombre y URL de la sala","r"],
+ ["flask","mysql","INSERT llamadas (estado = 'sonando')","m"],
+ ["flask","push","webpush(cuidador, URL /llamada/<id>)","m"],
+ ["push","cuidador","🔔 \"Videollamada de María · Toca para contestar\"","m"],
+ ["flask","adulto","201  { llamada }  → pantalla \"Llamando…\"","r"],
+ ["s","","2. Cada participante pide su propio token (solo participantes)"],
+ ["adulto","flask","GET /api/llamadas/<id>/token","m"],
+ ["flask","daily","POST /meeting-tokens (iniciador)","m"],
+ ["flask","adulto","{ url, token }","r"],
+ ["adulto","daily","daily-js: join(url, token)","m"],
+ ["cuidador","flask","Toca la notificación → GET /api/llamadas/<id>/token","m"],
+ ["n","flask","Un usuario que no es participante recibe 403","n"],
+ ["flask","mysql","UPDATE estado = 'en_curso', iniciada_en = ahora","m"],
+ ["flask","cuidador","{ url, token }","r"],
+ ["cuidador","daily","daily-js: join(url, token)","m"],
+ ["s","","3. Conversación"],
+ ["adulto","cuidador","📹 Video y audio cifrados a través de Daily","v"],
+ ["s","","4. Colgar y registrar"],
+ ["adulto","flask","POST /api/llamadas/<id>/fin","m"],
+ ["flask","mysql","UPDATE estado = 'finalizada', finalizada_en = ahora","m"],
+ ["flask","daily","DELETE /rooms/<sala>  (la sala deja de existir)","m"],
+ ["flask","adulto","Duración = finalizada_en − iniciada_en","r"]
+];
+const svg=document.getElementById('s'),NS='http://www.w3.org/2000/svg';
+function el(t,a,txt){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e}
+const top0=10, cabeza=62; let y=top0+cabeza+30; const paso=40;
+const defs=el('defs',{}); defs.innerHTML='<marker id="f" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 z" fill="#2d3b33"/></marker><marker id="fa" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10" fill="none" stroke="#5b6b62" stroke-width="1.6"/></marker><marker id="fv" markerWidth="12" markerHeight="10" refX="11" refY="5" orient="auto"><path d="M0,0 L12,5 L0,10 z" fill="#6b4bb8"/></marker><marker id="fvi" markerWidth="12" markerHeight="10" refX="1" refY="5" orient="auto"><path d="M12,0 L0,5 L12,10 z" fill="#6b4bb8"/></marker>';
+const filas=[];
+M.forEach(m=>{ if(m[0]==="s"){y+=10; filas.push([m,y]); y+=paso; } else { filas.push([m,y]); y+=paso; } });
+const alto=y+20+cabeza;
+svg.setAttribute('width',ancho); svg.setAttribute('height',alto);
+// líneas de vida
+P.forEach(p=>{ el('line',{x1:X[p[0]],y1:top0+cabeza,x2:X[p[0]],y2:alto-cabeza-6,stroke:'#b9c6be','stroke-width':2,'stroke-dasharray':'7 6'}); });
+function cabezal(yc){P.forEach(p=>{const w=gap-40;el('rect',{x:X[p[0]]-w/2,y:yc,width:w,height:cabeza-8,rx:9,fill:p[3]});el('text',{x:X[p[0]],y:yc+23,'text-anchor':'middle',fill:'#fff','font-size':16,'font-weight':700},p[1]);el('text',{x:X[p[0]],y:yc+42,'text-anchor':'middle',fill:'#eafff2','font-size':12.5},p[2]);});}
+let n=0;
+filas.forEach(([m,yy])=>{
+ if(m[0]==="s"){ el('rect',{x:4,y:yy-2,width:ancho-8,height:26,rx:5,fill:'#eef7f1'}); el('text',{x:16,y:yy+16,'font-size':14,'font-weight':700,fill:'#0b7a3a'},m[2]); return; }
+ if(m[3]==="n"){ const x=X[m[1]]; const t=el('text',{x:x+16,y:yy+5,'font-size':13,fill:'#8a2b1d','font-style':'italic'},'⚠ '+m[2]); const bb=t.getBBox(); const r=el('rect',{x:bb.x-8,y:bb.y-5,width:bb.width+16,height:bb.height+10,rx:5,fill:'#fff4ef',stroke:'#f1c4b5'}); svg.insertBefore(r,t); return; }
+ const x1=X[m[0]],x2=X[m[1]],izq=x2<x1; n++;
+ if(m[3]==="v"){ el('line',{x1:x1+4,y1:yy,x2:x2-4,y2:yy,stroke:'#6b4bb8','stroke-width':4,'marker-end':'url(#fv)','marker-start':'url(#fvi)'}); }
+ else el('line',{x1:x1,y1:yy,x2:x2+(izq?6:-6),y2:yy,stroke:m[3]==='r'?'#5b6b62':'#2d3b33','stroke-width':m[3]==='r'?1.6:2,'stroke-dasharray':m[3]==='r'?'6 5':null,'marker-end':m[3]==='r'?'url(#fa)':'url(#f)'});
+ const tx=(x1+x2)/2; const t=el('text',{x:tx,y:yy-8,'text-anchor':'middle','font-size':13.5,fill:'#1d2b23'},n+'. '+m[2]);
+ const bb=t.getBBox(); const r=el('rect',{x:bb.x-4,y:bb.y-1,width:bb.width+8,height:bb.height+2,fill:'#fff'}); svg.insertBefore(r,t);
+});
+cabezal(top0); cabezal(alto-cabeza-2);
+window.__LISTO__=true;
+</script></body></html>

@@ -4,8 +4,8 @@
 
 | | |
 |---|---|
-| 🌐 **Aplicación desplegada** | **https://saludplus-hdr5.onrender.com** |
-| 📂 **Repositorio** | **https://github.com/ShiaraPadilla/Saludplus** |
+| 🌐 **Aplicación desplegada** | **[COMPLETAR: https://saludplus.onrender.com]** |
+| 📂 **Repositorio** | **[COMPLETAR: https://github.com/usuario/saludplus]** |
 | 🎯 **ODS abordado** | **ODS 3 — Salud y bienestar** |
 | 🗄️ **Base de datos** | MySQL 8 (Aiven for MySQL) |
 | 🎓 **Curso** | Desarrollo Sostenible — Universidad Cooperativa de Colombia |
@@ -16,10 +16,11 @@
 
 ## 👥 Integrantes
 
-| Nombre | 
+| Nombre | Rol en el proyecto |
 |---|---|
-| Shiara Padilla | 
-| Valentina Hernandez | 
+| [COMPLETAR] | [COMPLETAR] |
+| [COMPLETAR] | [COMPLETAR] |
+| [COMPLETAR] | [COMPLETAR] |
 
 ---
 
