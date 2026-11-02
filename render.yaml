@@ -47,3 +47,17 @@ services:
         sync: false
       - key: DB_SSL_CA
         sync: false
+
+      # ---- Requerimiento avanzado: videollamada y rol cuidador ----
+      - key: ZONA_HORARIA_HORAS        # Colombia = -5 (para "hoy" y tomas atrasadas)
+        value: "-5"
+      - key: TAREAS_SECRETO            # clave del encabezado X-Tarea-Secreta (cron-job.org)
+        generateValue: true
+      - key: DAILY_API_KEY             # Daily.co → Developers → API keys
+        sync: false
+      - key: VAPID_PUBLIC_KEY          # python generar_claves_vapid.py
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_CORREO
+        value: "mailto:soporte@saludplus.app"

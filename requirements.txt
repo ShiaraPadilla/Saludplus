@@ -3,3 +3,5 @@ PyMySQL>=1.1
 cryptography>=42        # necesario para conectarse a MySQL 8 con contraseña
 python-dotenv>=1.0
 gunicorn>=22.0          # servidor para producción (Render)
+requests>=2.31          # API REST de Daily.co (videollamadas)
+pywebpush>=2.0          # notificaciones push con claves VAPID

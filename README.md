@@ -4,11 +4,12 @@
 
 | | |
 |---|---|
-| 🌐 **Aplicación desplegada** | **[COMPLETAR: https://saludplus.onrender.com]** |
-| 📂 **Repositorio** | **[COMPLETAR: https://github.com/usuario/saludplus]** |
+| 🌐 **Aplicación desplegada** | **https://saludplus-hdr5.onrender.com/** |
+| 📂 **Repositorio** | **https://github.com/ShiaraPadilla/Saludplus** |
 | 🎯 **ODS abordado** | **ODS 3 — Salud y bienestar** |
 | 🗄️ **Base de datos** | MySQL 8 (Aiven for MySQL) |
 | 🎓 **Curso** | Desarrollo Sostenible — Universidad Cooperativa de Colombia |
+| 👨‍🏫 **Docente** | Mauricio Ricardo |
 
 > ⏱️ La aplicación usa el plan gratuito de Render: si nadie la ha abierto en 15 minutos, la primera carga tarda cerca de **1 minuto**.
 
@@ -16,11 +17,8 @@
 
 ## 👥 Integrantes
 
-| Nombre | Rol en el proyecto |
-|---|---|
-| [COMPLETAR] | [COMPLETAR] |
-| [COMPLETAR] | [COMPLETAR] |
-| [COMPLETAR] | [COMPLETAR] |
+- **Shiara Padilla**
+- **Valentina Hernandez**
 
 ---
 
@@ -54,13 +52,42 @@ Muchos adultos mayores conviven con enfermedades crónicas (hipertensión, diabe
 
 ---
 
+## 📹 Requerimiento avanzado: videollamada familiar y rol cuidador
+
+Salud+ conecta al adulto mayor con su familia. Hay **videollamadas privadas** con un toque, un rol **cuidador** que recibe alertas cuando no se registra una toma, y **recordatorios leídos en voz alta**.
+
+| ID | Requerimiento | Cómo se cumple | Dónde |
+|---|---|---|---|
+| RF-01 | Vincular cuidador | El adulto genera un código de 6 dígitos con `secrets.randbelow` que vence en 24 h. El cuidador lo ingresa y queda vinculado, y el adulto puede revocarlo. Tras 5 códigos incorrectos se bloquea 10 min (contra fuerza bruta). | Ajustes → Mi cuidador · `backend/vinculos.py` |
+| RF-02 | Panel del cuidador | Resumen del día e informe de 7 días de cada persona, en **solo lectura**. Todo está protegido con `puede_ver(cuidador, adulto)`. | `panel-cuidador.html` · `/api/cuidador/...` |
+| RF-03 | Sala de video privada | Desde una cita o el botón «Llamar a mi familiar», Flask crea una sala **privada** en Daily que expira en 60 min. Cada participante pide su propio token, y quien no participa recibe **403**. | `backend/llamadas.py`, `backend/video.py` |
+| RF-04 | Llamada entrante | Notificación **push** (Web Push con claves VAPID) que abre `/llamada/<id>` con un toque, con botones *Contestar / Ahora no*. **Compatible con Android:** urgencia alta (`Urgency: high`, para que llegue aunque el teléfono ahorre batería), íconos PNG, ícono monocromático para la barra de estado y renovación automática de la suscripción. Con la app abierta aparece la pantalla de llamada entrante. | `backend/push.py`, `frontend/sw.js` |
+| RF-05 | Interfaz accesible | Botones de contestar y colgar de **84 px**, alto contraste y sin pantallas intermedias (`enable_prejoin_ui: false`). | `llamada.html` |
+| RF-06 | Alerta de toma omitida | `POST /tareas/revisar-tomas`, protegida con el encabezado secreto `X-Tarea-Secreta`, se ejecuta cada 5 min desde cron-job.org. **Una sola alerta** por toma, gracias a la llave primaria de `alertas_enviadas`. | `backend/tareas.py` |
+| RF-07 | Recordatorio por voz | Web Speech API (`speechSynthesis`) en español, más lento para adultos mayores. Se activa en Ajustes → Recordatorios. | `frontend/js/comun.js` |
+| RF-08 | Registro de llamadas | Cada llamada guarda participantes, cita, estado, inicio, fin y duración. | Tabla `llamadas` · Ajustes → Historial de llamadas |
+
+**Diagramas:**
+- [Diagrama E-R actualizado (13 tablas)](database/diagrama_er.png)
+- [Diagrama de secuencia de la llamada](docs/diagrama_secuencia_llamada.png)
+
+**Decisiones técnicas (diferencias con el documento técnico):**
+- **Llaves `INT UNSIGNED` en lugar de `BIGINT`:** MySQL exige que una llave foránea tenga el mismo tipo que la columna referenciada (`usuarios.id`).
+- **`alertas_enviadas` usa la llave `(medicamento_id, fecha, tipo)`:** el modelo no tiene una tabla de "tomas programadas", y esta llave garantiza la regla de una sola alerta por toma.
+- **Tokens bajo demanda:** cada token se crea cuando su participante lo pide, no los dos al crear la sala. Así nunca existe un token que nadie autorizado haya solicitado.
+- **Modo simulado:** sin `DAILY_API_KEY`, la app sigue funcionando y muestra un aviso en la pantalla de llamada. Esto permite probarla sin la cuenta de Daily.
+- **Privacidad:** el cuidador solo ve la información del informe de 7 días: tomas, citas, estado de ánimo con sus comentarios, agua, actividad y sueño. No puede modificar nada. Antes de vincularse, el adulto mayor ve en "Mi cuidador" exactamente qué podrá ver su cuidador, y puede revocar el vínculo cuando quiera.
+
+---
+
 ## 🔑 Credenciales de prueba
 
 | Rol | Correo | Contraseña | Qué puede revisar |
 |---|---|---|---|
 | **Administrador** | `admin@saludplus.com` | `Admin2026*` | Panel de administración (Ajustes → Panel de administración) |
 | **Usuario regular** | `maria@saludplus.com` | `Maria2026*` | Todas las funciones, con 2 semanas de datos de ejemplo |
-| Usuario regular | `jorge@saludplus.com` | `Jorge2026*` | Usuario con pocos datos |
+| Usuario regular | `jorge@saludplus.com` | `Jorge2026*` | Usuario con pocos datos (sirve para probar el vínculo con un código nuevo) |
+| **Cuidador** | `carlos@saludplus.com` | `Carlos2026*` | Panel del cuidador: cuida a María, ve su informe, recibe alertas y videollamadas |
 
 Estos usuarios se crean automáticamente al desplegar (`CARGAR_DATOS_EJEMPLO=1`).
 
@@ -75,6 +102,10 @@ Estos usuarios se crean automáticamente al desplegar (`CARGAR_DATOS_EJEMPLO=1`)
 | Base de datos | **MySQL 8**, conexión con PyMySQL (consultas parametrizadas, SSL) |
 | Seguridad | Werkzeug (hash scrypt), sesiones con cookie firmada `HttpOnly` |
 | Servidor | Gunicorn |
+| Videollamadas | **Daily.co** (API REST + `daily-js`), salas privadas con tokens |
+| Notificaciones | **Web Push** con `pywebpush` y claves VAPID; service worker (`sw.js`) |
+| Voz | **Web Speech API** (`speechSynthesis`, español `es-CO`) |
+| Tareas programadas | Ruta protegida llamada cada 5 min por **cron-job.org** |
 | Despliegue | **Render** (aplicación) + **Aiven for MySQL** (base de datos), vinculado a GitHub |
 | Diseño | Figma |
 
@@ -114,6 +145,7 @@ SaludPlus/
 ├── iniciar_bd.py            ← crea la base de datos y las tablas
 ├── cargar_datos_ejemplo.py  ← crea los usuarios de prueba
 ├── exportar_respaldo.py     ← genera database/saludplus_respaldo.sql
+├── generar_claves_vapid.py  ← crea las claves de las notificaciones push
 ├── frontend/                ← interfaz de usuario (HTML, CSS, JS, imágenes)
 ├── backend/                 ← lógica de negocio, rutas y conexión a la BD
 │   ├── auth.py              ← registro, login, logout, perfil, roles
@@ -122,6 +154,10 @@ SaludPlus/
 │   ├── bienestar.py         ← emociones, actividad, agua, sueño, preferencias
 │   ├── sincronizar.py       ← todos los datos del usuario en una petición
 │   ├── admin.py             ← panel de administración
+│   ├── vinculos.py          ← código de vínculo y panel del cuidador
+│   ├── llamadas.py · video.py ← salas privadas de Daily y registro de llamadas
+│   ├── push.py              ← notificaciones Web Push
+│   ├── tareas.py            ← alerta de toma omitida (cron-job.org)
 │   ├── validaciones.py      ← reglas de validación del servidor
 │   ├── db.py · esquema.py · datos_ejemplo.py · paginas.py · utilidades.py
 ├── database/                ← esquema, respaldo con datos y diagrama E-R
@@ -178,6 +214,11 @@ Abre **http://localhost:5000**.
 | `DETRAS_DE_PROXY` | Reconocer el proxy HTTPS | `0` | `1` |
 | `CREAR_TABLAS_AL_INICIAR` | Crear las tablas al arrancar | `0` | `1` |
 | `CARGAR_DATOS_EJEMPLO` | Crear los usuarios de prueba | `0` | `1` |
+| `ZONA_HORARIA_HORAS` | Zona horaria de los usuarios | `-5` | `-5` |
+| `TAREAS_SECRETO` | Clave del encabezado `X-Tarea-Secreta` | texto inventado | la genera Render |
+| `DAILY_API_KEY` | API key de Daily.co (vacía = modo simulado) | — | la de Daily |
+| `VAPID_PUBLIC_KEY` · `VAPID_PRIVATE_KEY` | Claves de las notificaciones push | `python generar_claves_vapid.py` | las mismas |
+| `VAPID_CORREO` | Contacto para los servicios push | `mailto:...` | `mailto:...` |
 
 ⚠️ El archivo `.env` con datos reales **nunca** se sube al repositorio (está en `.gitignore`).
 
@@ -206,6 +247,16 @@ Render (aplicación) + Aiven (MySQL), vinculado a este repositorio: cada cambio 
 | GET · PUT | `/api/agua` · `/api/sueno` | Agua y sueño por día |
 | GET · PUT | `/api/preferencias` | Configuración de recordatorios |
 | GET | `/api/admin/resumen` · `/api/admin/usuarios` | Panel de administración (solo admin) |
+| POST · DELETE | `/api/vinculos/codigo` | El adulto genera o cancela su código de 6 dígitos |
+| POST | `/api/vinculos/aceptar` | El cuidador ingresa el código |
+| GET · DELETE | `/api/vinculos[/<id>]` | Ver y revocar vínculos |
+| GET | `/api/cuidador/personas` · `/personas/<id>/informe` · `/alertas` | Panel del cuidador (solo lectura) |
+| POST | `/api/llamadas` | Crear una sala privada y avisar por push |
+| GET | `/api/llamadas/<id>/token` | Token de la sala (**solo participantes**, si no 403) |
+| POST | `/api/llamadas/<id>/fin` · `/rechazar` | Colgar (calcula la duración) o rechazar |
+| GET | `/api/llamadas` · `/api/llamadas/entrante` | Historial y llamada entrante |
+| GET · POST | `/api/push/clave` · `/suscribir` · `/desuscribir` · `/probar` | Notificaciones push |
+| POST | `/tareas/revisar-tomas` | Tarea programada (encabezado `X-Tarea-Secreta`) |
 
 Las respuestas son JSON: `{"ok": true, ...}` o `{"ok": false, "error": "mensaje", "campo": "nombre"}`.
 
