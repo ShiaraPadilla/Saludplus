@@ -13,6 +13,9 @@ const SEGUNDOS_TIMBRE = 60;
 
 let marco = null;
 let simulado = false;
+
+// Motivo técnico del último error de video (se envía al servidor al colgar)
+let diagnostico = "";
 let soyIniciador = false;
 let terminada = false;
 let enCurso = false;
@@ -73,7 +76,9 @@ async function iniciarPantallaLlamada() {
         try {
             await unirseADaily(datos.url, datos.token);
         } catch (error) {
-            mostrarFin("⚠️", "No se pudo conectar el video", "Revisa tu conexión a internet y vuelve a intentarlo.");
+            if (terminada) return;      // el evento "error" de Daily ya lo manejó
+            diagnostico = "join: " + ((error && (error.errorMsg || error.message)) || String(error));
+            mostrarFin("⚠️", "No se pudo conectar el video", "Revisa tu conexión a internet y vuelve a intentarlo. (" + diagnostico + ")");
             avisarFin();
             return;
         }
@@ -127,8 +132,19 @@ async function unirseADaily(url, token) {
         if (!terminada) colgar();
     });
 
-    marco.on("error", function() {
-        if (!terminada) colgar("Se perdió la conexión.");
+    // Error fatal de Daily: mostrar el motivo real y registrarlo en el servidor
+    marco.on("error", function(evento) {
+        if (terminada) return;
+        const e = explicarErrorDaily(evento);
+        diagnostico = e.tecnico;
+        colgar(e.detalle, e.icono, e.titulo);
+    });
+
+    // Sin permiso de cámara o micrófono: la llamada sigue, pero se avisa
+    marco.on("camera-error", function(evento) {
+        diagnostico = "camera-error: " + ((evento && evento.errorMsg && (evento.errorMsg.errorMsg || evento.errorMsg)) || "");
+        mostrarAviso("📷 Chrome no tiene permiso para la cámara o el micrófono. Toca el candado junto a la dirección → Permisos → permite Cámara y Micrófono.");
+        api("POST", "/llamadas/" + LLAMADA_ID + "/diagnostico", { motivo: diagnostico }).catch(function() {});
     });
 
     await marco.join({ url: url, token: token });
@@ -209,7 +225,7 @@ async function colgar(motivo, icono, titulo) {
     let llamada = null;
 
     try {
-        llamada = (await api("POST", "/llamadas/" + LLAMADA_ID + "/fin")).llamada;
+        llamada = (await api("POST", "/llamadas/" + LLAMADA_ID + "/fin", diagnostico ? { motivo: diagnostico } : undefined)).llamada;
     } catch (error) {}
 
     const duracion = llamada && llamada.duracion_segundos ? duracionTexto(llamada.duracion_segundos) : "";
@@ -238,7 +254,7 @@ function avisarFin() {
 
     limpiarTemporizadores();
 
-    api("POST", "/llamadas/" + LLAMADA_ID + "/fin").catch(function() {});
+    api("POST", "/llamadas/" + LLAMADA_ID + "/fin", diagnostico ? { motivo: diagnostico } : undefined).catch(function() {});
 }
 
 
@@ -329,3 +345,36 @@ window.addEventListener("pagehide", function() {
 });
 
 document.addEventListener("DOMContentLoaded", iniciarPantallaLlamada);
+
+
+
+/* ---------- Errores de Daily en lenguaje claro ---------- */
+
+function explicarErrorDaily(evento) {
+
+    const tipo = (evento && evento.error && evento.error.type) || "";
+
+    const mensaje = (evento && (evento.errorMsg || (evento.error && evento.error.msg))) || "";
+
+    const tecnico = (tipo || "error") + (mensaje ? ": " + mensaje : "");
+
+    // La sala se cerró: el otro colgó o la llamada se dio por terminada
+    if (["ejected", "no-room", "exp-room", "exp-token"].indexOf(tipo) !== -1 ||
+        /room.*(deleted|does not exist|expired)|ejected/i.test(mensaje)) {
+        return { icono: "📞", titulo: "La llamada terminó", detalle: "El otro participante colgó o la sala se cerró.", tecnico: tecnico };
+    }
+
+    if (tipo === "account-missing-payment-method" || /payment method/i.test(mensaje)) {
+        return { icono: "⚠️", titulo: "La cuenta de video no está habilitada", detalle: "La cuenta de Daily.co necesita un método de pago registrado (no se cobra en el plan gratuito).", tecnico: tecnico };
+    }
+
+    if (tipo === "meeting-full") {
+        return { icono: "⚠️", titulo: "La sala está llena", detalle: "Ya hay otra persona en esta llamada.", tecnico: tecnico };
+    }
+
+    if (tipo === "not-allowed" || /not allowed|token/i.test(mensaje)) {
+        return { icono: "🔒", titulo: "No se pudo entrar a la sala", detalle: "Permiso de la sala rechazado. Intenta llamar de nuevo.", tecnico: tecnico };
+    }
+
+    return { icono: "📶", titulo: "Llamada finalizada", detalle: "Se perdió la conexión. Motivo: " + tecnico, tecnico: tecnico };
+}
