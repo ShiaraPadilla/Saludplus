@@ -61,6 +61,7 @@ async function iniciarPantallaLlamada() {
     $("nombreOtro").textContent = llamada.con;
     $("avatarOtro").textContent = llamada.con.charAt(0);
     $("avatarGrande").textContent = llamada.con.charAt(0);
+    $("avatarRemoto").textContent = llamada.con.charAt(0);
 
     if (llamada.cita) {
         $("citaLlamada").hidden = false;
@@ -109,13 +110,20 @@ async function unirseADaily(url, token) {
         throw new Error("daily-js no cargó");
     }
 
-    $("escenaEspera").hidden = true;
+    /*
+       Modo "call object": Daily solo maneja la conexión y nosotros
+       dibujamos el video. Así el familiar se ve en pantalla completa,
+       la propia imagen en un recuadro y solo están nuestros botones
+       grandes (RF-05), sin los controles pequeños de Daily.
+    */
+    marco = window.DailyIframe.createCallObject({ subscribeToTracksAutomatically: true });
 
-    marco = window.DailyIframe.createFrame($("video"), {
-        showLeaveButton: false,          // usamos nuestro botón grande
-        showFullscreenButton: false,
-        lang: "es",
-        iframeStyle: { width: "100%", height: "100%", border: "0", borderRadius: "18px" }
+    marco.on("track-started", function(evento) {
+        mostrarPista(evento.participant, evento.track);
+    });
+
+    marco.on("track-stopped", function(evento) {
+        quitarPista(evento.participant, evento.track);
     });
 
     marco.on("participant-joined", function(evento) {
@@ -148,6 +156,86 @@ async function unirseADaily(url, token) {
     });
 
     await marco.join({ url: url, token: token });
+
+    // Si el familiar ya estaba en la sala cuando entramos
+    const otros = Object.values(marco.participants()).filter(function(p) { return !p.local; });
+
+    if (otros.length > 0) empezarLlamada();
+}
+
+
+/* ---------- Video y audio en pantalla ---------- */
+
+function mostrarPista(participante, pista) {
+
+    if (!participante || !pista) return;
+
+    if (pista.kind === "video") {
+
+        const video = participante.local ? $("videoLocal") : $("videoRemoto");
+
+        video.srcObject = new MediaStream([pista]);
+        video.hidden = false;
+
+        if (participante.local) {
+
+            // Cámara frontal en espejo; la trasera, normal
+            const ajustes = pista.getSettings ? pista.getSettings() : {};
+            video.classList.toggle("espejo", ajustes.facingMode !== "environment");
+
+            $("botonGirarCamara").hidden = false;
+
+        } else {
+
+            $("escenaEspera").hidden = true;
+            $("sinVideoRemoto").hidden = true;
+        }
+
+        reproducir(video, false);
+    }
+
+    if (pista.kind === "audio" && !participante.local) {
+
+        const audio = $("audioRemoto");
+
+        audio.srcObject = new MediaStream([pista]);
+
+        reproducir(audio, true);
+    }
+}
+
+
+function quitarPista(participante, pista) {
+
+    if (!participante || !pista || pista.kind !== "video") return;
+
+    if (participante.local) {
+
+        $("videoLocal").hidden = true;
+        $("botonGirarCamara").hidden = true;
+
+    } else {
+
+        $("videoRemoto").hidden = true;
+
+        // El familiar apagó la cámara: se muestra su inicial
+        if (!terminada) $("sinVideoRemoto").hidden = false;
+    }
+}
+
+
+/* Android puede bloquear el sonido automático: se pide un toque */
+
+function reproducir(elemento, esAudio) {
+
+    const intento = elemento.play();
+
+    if (intento && intento.catch) {
+
+        intento.catch(function() {
+            if (esAudio) $("botonActivarSonido").hidden = false;
+        });
+    }
 }
 
 
@@ -164,6 +252,12 @@ function empezarLlamada(iniciadaEn) {
     inicioLlamada = iniciadaEn ? new Date(iniciadaEn) : new Date();
 
     mostrarEstado("En llamada");
+
+    // Si el familiar entró sin cámara, se muestra su inicial en vez de la espera
+    if (!simulado && $("videoRemoto").hidden) {
+        $("escenaEspera").hidden = true;
+        $("sinVideoRemoto").hidden = false;
+    }
 
     $("cronometro").hidden = false;
 
@@ -364,7 +458,7 @@ function explicarErrorDaily(evento) {
         return { icono: "📞", titulo: "La llamada terminó", detalle: "El otro participante colgó o la sala se cerró.", tecnico: tecnico };
     }
 
-    if (tipo === "account-missing-payment-method" || /payment method/i.test(mensaje)) {
+    if (tipo === "account-missing-payment-method" || /payment[- ]method/i.test(mensaje)) {
         return { icono: "⚠️", titulo: "La cuenta de video no está habilitada", detalle: "La cuenta de Daily.co necesita un método de pago registrado (no se cobra en el plan gratuito).", tecnico: tecnico };
     }
 
@@ -378,3 +472,28 @@ function explicarErrorDaily(evento) {
 
     return { icono: "📶", titulo: "Llamada finalizada", detalle: "Se perdió la conexión. Motivo: " + tecnico, tecnico: tecnico };
 }
+
+
+
+/* ---------- Cambiar de cámara y activar sonido ---------- */
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    $("botonGirarCamara").addEventListener("click", async function() {
+
+        if (!marco) return;
+
+        try {
+            await marco.cycleCamera();     // frontal ↔ trasera
+        } catch (error) {
+            mostrarAviso("Este celular no permite cambiar de cámara.");
+        }
+    });
+
+    $("botonActivarSonido").addEventListener("click", function() {
+
+        $("audioRemoto").play().catch(function() {});
+
+        this.hidden = true;
+    });
+});
