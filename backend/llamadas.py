@@ -15,14 +15,18 @@ Otras rutas:
 
 from datetime import datetime, timezone
 
+import logging
+
 from flask import Blueprint, g
 
 from . import video
 from .auth import login_requerido
 from .db import consultar, ejecutar
 from .push import enviar_push
-from .utilidades import datos_json, error, ok, serializar
+from .utilidades import datos_json, error, ok, serializar, texto
 from .vinculos import adultos_vinculados, cuidadores_activos, puede_ver
+
+log = logging.getLogger(__name__)
 
 bp = Blueprint("llamadas", __name__, url_prefix="/api/llamadas")
 
@@ -225,6 +229,32 @@ def token(llamada_id):
 #   COLGAR / RECHAZAR / ESTADO
 # =========================================================
 
+def registrar_diagnostico(llamada_id):
+    """Si el celular reporta un error de video, queda en los logs de Render."""
+
+    motivo = texto(datos_json(), "motivo")[:300]
+
+    if motivo:
+        log.warning("Llamada %s · usuario %s · error de video: %s", llamada_id, g.usuario["id"], motivo)
+
+
+@bp.post("/<int:llamada_id>/diagnostico")
+@login_requerido
+def diagnostico(llamada_id):
+
+    llamada = buscar(llamada_id)
+
+    if not llamada:
+        return error("La llamada no existe.", 404)
+
+    if not es_participante(llamada, g.usuario["id"]):
+        return error("No participas en esta llamada.", 403)
+
+    registrar_diagnostico(llamada_id)
+
+    return ok()
+
+
 @bp.post("/<int:llamada_id>/fin")
 @login_requerido
 def fin(llamada_id):
@@ -236,6 +266,8 @@ def fin(llamada_id):
 
     if not es_participante(llamada, g.usuario["id"]):
         return error("No participas en esta llamada.", 403)
+
+    registrar_diagnostico(llamada_id)
 
     if llamada["estado"] == "en_curso":
         ejecutar(
