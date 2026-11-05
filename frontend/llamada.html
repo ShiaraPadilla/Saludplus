@@ -43,6 +43,28 @@
 
         <!-- VIDEO (Daily.co) -->
         <div id="video" class="llamada-video">
+
+            <!-- Video del familiar: pantalla completa -->
+            <video id="videoRemoto" class="video-remoto" autoplay playsinline hidden></video>
+
+            <!-- El familiar apagó su cámara -->
+            <div id="sinVideoRemoto" class="video-sin-camara" hidden>
+                <div class="llamada-avatar llamada-avatar-grande" id="avatarRemoto" aria-hidden="true">?</div>
+                <p>Cámara apagada</p>
+            </div>
+
+            <!-- Mi propia imagen: recuadro pequeño -->
+            <video id="videoLocal" class="video-local" autoplay playsinline muted hidden></video>
+
+            <!-- Cambiar entre cámara frontal y trasera -->
+            <button type="button" id="botonGirarCamara" class="boton-girar-camara" aria-label="Cambiar de cámara" hidden>🔄</button>
+
+            <!-- Sonido del familiar -->
+            <audio id="audioRemoto" autoplay></audio>
+
+            <!-- Si el navegador bloquea el sonido automático -->
+            <button type="button" id="botonActivarSonido" class="boton-activar-sonido" hidden>🔊 Toca para escuchar</button>
+
             <div id="escenaEspera" class="llamada-espera">
                 <div class="llamada-onda" aria-hidden="true"></div>
                 <div class="llamada-avatar llamada-avatar-grande" id="avatarGrande" aria-hidden="true">?</div>
